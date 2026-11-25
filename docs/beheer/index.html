@@ -131,7 +131,7 @@ td.acts{white-space:nowrap;width:1%}
 <script>
 {
 /* ------------------------------------------------------------ instellingen */
-const API = '';                       // wordt gevuld door de build
+const API = 'https://script.google.com/macros/s/AKfycbwE3feLv-52MY5CAJ5IHuImgsachUHQammWvPHYyjTyYzAAqr_sNSysOx3Pnz7T_sSl1Q/exec';                       // wordt gevuld door de build
 const DEMO = !/^https:/.test(API) || new URLSearchParams(location.search).has('demo');
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
