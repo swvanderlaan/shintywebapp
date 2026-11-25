@@ -1,0 +1,6 @@
+# Leesbare teamgegevens bevatten namen van kinderen: NOOIT committen
+data/*
+!data/README.md
+*.log
+__pycache__/
+.env

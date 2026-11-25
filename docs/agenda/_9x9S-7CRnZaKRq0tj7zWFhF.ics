@@ -1,0 +1,154 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//shintywebapp//1.0.0//NL
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+X-WR-CALNAME:DMHC Shinty JO11-1
+X-WR-TIMEZONE:Europe/Amsterdam
+REFRESH-INTERVAL;VALUE=DURATION:PT6H
+X-PUBLISHED-TTL:PT6H
+BEGIN:VEVENT
+UID:2026-11-27-training-b6fe7f5e79@shintywebapp
+DTSTAMP:20261125T125056Z
+DTSTART;TZID=Europe/Amsterdam:20261127T154500
+DTEND;TZID=Europe/Amsterdam:20261127T170000
+SUMMARY:JO11-1: Training
+LOCATION:Twee Marken\, Trompplein 5\, Maarn
+DESCRIPTION:Tijd: 16:00–17:00\nTaken (keeper\, rijden\, fruit) staan in de team-app.
+END:VEVENT
+BEGIN:VEVENT
+UID:2026-11-28-veld-0af0a22ec2@shintywebapp
+DTSTAMP:20261125T125056Z
+DTSTART;TZID=Europe/Amsterdam:20261128T083000
+DTEND;TZID=Europe/Amsterdam:20261128T105000
+SUMMARY:JO11-1: uit Dorsteti
+LOCATION:Lekdijk Oost 13\, Wijk bij Duurstede
+DESCRIPTION:Tijd: 09:30\nVerzamelen: 08:30 Planet Happy\nTaken (keeper\, rijden\, fruit) staan in de team-app.
+END:VEVENT
+BEGIN:VEVENT
+UID:2026-12-05-zaal-8567c0219b@shintywebapp
+DTSTAMP:20261125T125056Z
+DTSTART;TZID=Europe/Amsterdam:20261205T092500
+DTEND;TZID=Europe/Amsterdam:20261205T113000
+SUMMARY:JO11-1: Shinty – Gooische\, Maarn – Shinty
+LOCATION:De Twee Marken\, Trompplein 5\, Maarn
+DESCRIPTION:Tijd: 10:10 en 10:50\nVerzamelen: 09:25 Planet Happy\nTaken (keeper\, rijden\, fruit) staan in de team-app.
+END:VEVENT
+BEGIN:VEVENT
+UID:2026-12-06-veld-faf7a33ecb@shintywebapp
+DTSTAMP:20261125T125056Z
+DTSTART;TZID=Europe/Amsterdam:20261206T120000
+DTEND;TZID=Europe/Amsterdam:20261206T142000
+SUMMARY:JO11-1: inhaal uit Kromme Rijn
+LOCATION:Tolhuislaan 3\, Bunnik
+DESCRIPTION:Tijd: 13:00\nVerzamelen: 12:00 Planet Happy\nTaken (keeper\, rijden\, fruit) staan in de team-app.
+END:VEVENT
+BEGIN:VEVENT
+UID:2026-12-08-training-b6fe7f5e79@shintywebapp
+DTSTAMP:20261125T125056Z
+DTSTART;TZID=Europe/Amsterdam:20261208T164500
+DTEND;TZID=Europe/Amsterdam:20261208T180000
+SUMMARY:JO11-1: Training
+LOCATION:Sportdome Bunnik\, veld 2
+DESCRIPTION:Tijd: 17:00–18:00\nTaken (keeper\, rijden\, fruit) staan in de team-app.
+END:VEVENT
+BEGIN:VEVENT
+UID:2026-12-18-training-b6fe7f5e79@shintywebapp
+DTSTAMP:20261125T125056Z
+DTSTART;TZID=Europe/Amsterdam:20261218T154500
+DTEND;TZID=Europe/Amsterdam:20261218T170000
+SUMMARY:JO11-1: Training
+LOCATION:Twee Marken\, Trompplein 5\, Maarn
+DESCRIPTION:Tijd: 16:00–17:00\nTaken (keeper\, rijden\, fruit) staan in de team-app.
+END:VEVENT
+BEGIN:VEVENT
+UID:2027-01-05-training-b6fe7f5e79@shintywebapp
+DTSTAMP:20261125T125056Z
+DTSTART;TZID=Europe/Amsterdam:20270105T164500
+DTEND;TZID=Europe/Amsterdam:20270105T180000
+SUMMARY:JO11-1: Training
+LOCATION:Sportdome Bunnik\, veld 2
+DESCRIPTION:Tijd: 17:00–18:00\nTaken (keeper\, rijden\, fruit) staan in de team-app.
+END:VEVENT
+BEGIN:VEVENT
+UID:2027-01-10-zaal-0d3d3e0364@shintywebapp
+DTSTAMP:20261125T125056Z
+DTSTART;TZID=Europe/Amsterdam:20270110T130500
+DTEND;TZID=Europe/Amsterdam:20270110T153000
+SUMMARY:JO11-1: Lelystad – Shinty\, Eemvallei – Shinty
+LOCATION:Sporthal Icoon\, Lovink 10\, Amersfoort
+DESCRIPTION:Tijd: 14:10 en 14:50\nVerzamelen: 13:05 Planet Happy\nTaken (keeper\, rijden\, fruit) staan in de team-app.
+END:VEVENT
+BEGIN:VEVENT
+UID:2027-01-12-training-b6fe7f5e79@shintywebapp
+DTSTAMP:20261125T125056Z
+DTSTART;TZID=Europe/Amsterdam:20270112T164500
+DTEND;TZID=Europe/Amsterdam:20270112T180000
+SUMMARY:JO11-1: Training
+LOCATION:Sportdome Bunnik\, veld 2
+DESCRIPTION:Tijd: 17:00–18:00\nTaken (keeper\, rijden\, fruit) staan in de team-app.
+END:VEVENT
+BEGIN:VEVENT
+UID:2027-01-19-training-b6fe7f5e79@shintywebapp
+DTSTAMP:20261125T125056Z
+DTSTART;TZID=Europe/Amsterdam:20270119T164500
+DTEND;TZID=Europe/Amsterdam:20270119T180000
+SUMMARY:JO11-1: Training
+LOCATION:Sportdome Bunnik\, veld 2
+DESCRIPTION:Tijd: 17:00–18:00\nTaken (keeper\, rijden\, fruit) staan in de team-app.
+END:VEVENT
+BEGIN:VEVENT
+UID:2027-01-24-zaal-9ee6ac63d0@shintywebapp
+DTSTAMP:20261125T125056Z
+DTSTART;TZID=Europe/Amsterdam:20270124T102500
+DTEND;TZID=Europe/Amsterdam:20270124T125000
+SUMMARY:JO11-1: Gooische – Shinty\, Shinty – Kampong
+LOCATION:Synvest Dome\, Meerweg 75\, Bussum
+DESCRIPTION:Tijd: 11:30 en 12:10\nVerzamelen: 10:25 Planet Happy\nTaken (keeper\, rijden\, fruit) staan in de team-app.
+END:VEVENT
+BEGIN:VEVENT
+UID:2027-01-26-training-b6fe7f5e79@shintywebapp
+DTSTAMP:20261125T125056Z
+DTSTART;TZID=Europe/Amsterdam:20270126T164500
+DTEND;TZID=Europe/Amsterdam:20270126T180000
+SUMMARY:JO11-1: Training
+LOCATION:Sportdome Bunnik\, veld 2
+DESCRIPTION:Tijd: 17:00–18:00\nTaken (keeper\, rijden\, fruit) staan in de team-app.
+END:VEVENT
+BEGIN:VEVENT
+UID:2027-01-31-zaalleiding-ef79454a35@shintywebapp
+DTSTAMP:20261125T125056Z
+DTSTART;TZID=Europe/Amsterdam:20270131T104500
+DTEND;TZID=Europe/Amsterdam:20270131T131500
+SUMMARY:JO11-1: Shinty – Eemvallei\, Shinty – Maarn
+LOCATION:Hoenderdaal\, veld 1\, Hoendersteeg 7\, Driebergen
+DESCRIPTION:Tijd: 11:15 en 12:35\nVerzamelen: 10:45 in de hal\nTaken (keeper\, rijden\, fruit) staan in de team-app.
+END:VEVENT
+BEGIN:VEVENT
+UID:2027-02-05-training-b6fe7f5e79@shintywebapp
+DTSTAMP:20261125T125056Z
+DTSTART;TZID=Europe/Amsterdam:20270205T154500
+DTEND;TZID=Europe/Amsterdam:20270205T170000
+SUMMARY:JO11-1: Training
+LOCATION:Twee Marken\, Trompplein 5\, Maarn
+DESCRIPTION:Tijd: 16:00–17:00\nTaken (keeper\, rijden\, fruit) staan in de team-app.
+END:VEVENT
+BEGIN:VEVENT
+UID:2027-02-07-zaalleiding-1eba0a81ef@shintywebapp
+DTSTAMP:20261125T125056Z
+DTSTART;TZID=Europe/Amsterdam:20270207T124000
+DTEND;TZID=Europe/Amsterdam:20270207T153000
+SUMMARY:JO11-1: Shinty – Doorn\, Shinty – Lelystad
+LOCATION:Sportdome Bunnik\, Tolhuislaan 3B\, Bunnik
+DESCRIPTION:Tijd: 13:30 en 14:50\nVerzamelen: 12:40 Planet Happy\nTaken (keeper\, rijden\, fruit) staan in de team-app.
+END:VEVENT
+BEGIN:VEVENT
+UID:2027-02-14-zaal-9ca6850627@shintywebapp
+DTSTAMP:20261125T125056Z
+DTSTART;TZID=Europe/Amsterdam:20270214T084500
+DTEND;TZID=Europe/Amsterdam:20270214T105000
+SUMMARY:JO11-1: Kampong – Shinty\, Doorn – Shinty
+LOCATION:Kamponghal XXL\, Laan van Maarschalkerweerd 14\, Utrecht
+DESCRIPTION:Tijd: 09:30 en 10:10\nVerzamelen: 08:45 Planet Happy\nTaken (keeper\, rijden\, fruit) staan in de team-app.
+END:VEVENT
+END:VCALENDAR

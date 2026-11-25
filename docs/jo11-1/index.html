@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>JO11-1 Shinty – Wie doet wat</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* VOICE: vriendelijk, praktisch, zoals een teammanager langs de lijn
+   IDEA: het wedstrijdbriefje / opstellingsbord in de dug-out
+   PICTURE: de kaart van de eerstvolgende activiteit zelf, groot bovenaan
+   COLOUR and TYPE: Shinty-tenue: donkergroen, wit, rode bies, lichtgrijs; Barlow Condensed + Barlow
+   LAYOUT: één kolom, kaart bovenaan, dan kind kiezen, dan programma, dan info */
+:root{color-scheme:light dark;
+  --bg:light-dark(#ffffff,#07140e);--ink:light-dark(#10201a,#eef5f0);--soft:light-dark(#5c6b63,#a8bcb0);
+  --turf:light-dark(#0f5a32,#0e4a2b);--turf2:light-dark(#0a4325,#08331d);--line:light-dark(#e2e8e4,#1d3a2b);
+  --card:light-dark(#f2f5f3,#0f2219);--ball:#d42a2f;--ok:light-dark(#0b7a46,#5fd69b);--rest:light-dark(#8a5a00,#ffc566)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 Barlow,system-ui,sans-serif;overflow-x:clip}
+h1,h2,h3,.big{font-family:"Barlow Condensed",Barlow,sans-serif;font-weight:800;line-height:1.05;margin:0;text-wrap:balance}
+h2{font-size:30px;margin-bottom:14px}
+.band{padding:clamp(24px,4vw,56px) max(5vw,16px)}
+.wrap{max-width:860px;margin:0 auto}
+a{color:inherit}
+.hero{background:linear-gradient(160deg,var(--turf),var(--turf2));color:#fff;position:relative;overflow:hidden}
+.hero::before{content:"";position:absolute;inset:0;background:linear-gradient(to bottom right,transparent 0 74%,var(--ball) 74% 75.3%,light-dark(#ffffff,#dfe5e1) 75.3%);pointer-events:none}
+.hero .wrap{position:relative;z-index:1}
+.kick{font-weight:600;opacity:.85;font-size:15px}
+.hero h1{font-size:clamp(34px,6vw,50px);margin:4px 0 18px}
+.next{position:relative;background:#fff;color:#0c1630;border-radius:18px;display:grid;grid-template-columns:110px minmax(0,1fr);overflow:hidden;box-shadow:0 18px 40px rgba(0,40,20,.35)}
+:root[data-theme=dark] .next,:root:not([data-theme=light]) .next{background:light-dark(#fff,#0f2219);color:var(--ink)}
+.date{background:var(--ball);color:#fff;text-align:center;padding:18px 8px;display:flex;flex-direction:column;justify-content:center}
+.date .wd{font-size:18px;font-weight:600;text-transform:lowercase}.date .dn{font-size:52px;font-family:"Barlow Condensed";font-weight:800;line-height:1}.date .mo{font-size:18px;font-weight:600}
+.nb{padding:16px 18px}
+.when{font-size:15px;color:var(--soft);font-weight:600}
+.nb h3{font-size:28px;margin:2px 0 6px}
+.meta{display:grid;grid-template-columns:7.5em minmax(0,1fr);gap:2px 10px;font-size:16px;margin:8px 0 4px}
+.meta dt{color:var(--soft)}.meta dd{margin:0;font-weight:600}
+.roles{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin-top:12px}
+.role{background:light-dark(#f2f5f3,#183326);border-radius:12px;padding:8px 12px}
+.role b{display:block;font-size:13px;color:var(--soft);font-weight:600}
+.role span{font-weight:600}
+.note{font-size:15px;color:var(--soft);margin-top:8px}
+.tbd{color:var(--soft);font-style:italic;font-weight:500}
+.pill{display:inline-block;font-size:13px;font-weight:600;padding:2px 9px;border-radius:99px;background:var(--card);margin:2px 4px 2px 0;white-space:nowrap}
+.p-keeper{background:var(--ball);color:#fff}.p-captain{background:var(--turf);color:#fff}.p-fruit{background:#ffe08a;color:#4a3500}
+.p-rijden{background:light-dark(#e3e7e4,#2a3a32);color:var(--ink)}.p-rust,.p-afwezig{background:light-dark(#fff1d6,#3a2a05);color:var(--rest)}.p-speelt{color:var(--ok)}
+.p-elders{color:var(--soft)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font:600 16px Barlow,sans-serif;min-height:44px;padding:8px 16px;border-radius:99px;border:2px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+.chip[aria-pressed=true]{background:var(--turf);border-color:var(--turf);color:#fff}
+.chip:focus-visible,.btn:focus-visible,summary:focus-visible{outline:3px solid var(--ball);outline-offset:2px}
+.sum{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0 4px}
+.sum div{background:var(--card);border-radius:12px;padding:8px 14px;text-align:center;flex:1 1 90px}
+.sum .big{font-size:30px;display:block}.sum small{color:var(--soft);font-weight:600}
+.list{list-style:none;margin:0;padding:0}
+.ev{display:grid;grid-template-columns:76px minmax(0,1fr);gap:12px;padding:14px 0;border-bottom:1px solid var(--line)}
+.ev .d{font-family:"Barlow Condensed";font-weight:800;font-size:22px;line-height:1.05;white-space:nowrap}
+.ev .d small{display:block;font-family:Barlow;font-weight:600;font-size:14px;color:var(--soft)}
+.ev .t{font-weight:600}.ev .w{font-size:15px;color:var(--soft)}
+.ev.past{opacity:.5}
+.ev details{margin-top:6px}.ev summary{cursor:pointer;font-size:15px;font-weight:600;color:var(--turf);min-height:32px}
+:root[data-theme=dark] .ev summary{color:#8fd3aa}
+.kind{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:1px}
+.k-training{background:#9aa6c4}.k-veld{background:#2fb36b}.k-zaal{background:var(--turf)}.k-zaalleiding{background:var(--ball)}
+.btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.btn{display:inline-flex;align-items:center;min-height:40px;padding:6px 14px;border-radius:10px;border:2px solid var(--line);background:var(--bg);color:var(--ink);font:600 15px Barlow,sans-serif;text-decoration:none;cursor:pointer}
+.btn.solid{background:var(--ball);border-color:var(--ball);color:#fff}
+.toggle{display:flex;align-items:center;gap:8px;font-weight:600;font-size:15px;margin:6px 0 4px;min-height:44px}
+.toggle input{width:20px;height:20px}
+.info details{border-bottom:1px solid var(--line);padding:10px 0}
+.info summary{font-weight:600;cursor:pointer;min-height:36px}
+.info p{margin:6px 0 4px;max-width:68ch}
+.empty{color:var(--soft);padding:12px 0}
+footer{font-size:14px;color:var(--soft)}
+[hidden]{display:none!important}
+.lockcard{display:block;max-width:520px}
+.lbl{display:block;font-weight:600;font-size:15px;margin-bottom:4px}
+.pwrow{display:flex;gap:8px}.pwrow input{flex:1;font:16px Barlow,sans-serif;min-height:44px;padding:8px 12px;border-radius:10px;border:2px solid var(--line);background:var(--bg);color:var(--ink)}
+.pwrow input:focus-visible{outline:3px solid var(--ball);outline-offset:1px}
+.err{color:#d23a1a;font-weight:600;min-height:1.5em;margin:4px 0 0}
+.legend{display:flex;flex-wrap:wrap;gap:4px 16px;font-size:14px;color:var(--soft);margin-bottom:6px}
+@media(max-width:600px){.next{grid-template-columns:1fr}.date{flex-direction:row;gap:10px;align-items:baseline;justify-content:flex-start;padding:10px 18px}.date .dn{font-size:34px}
+  .meta{grid-template-columns:6.5em minmax(0,1fr)}.ev{grid-template-columns:62px minmax(0,1fr)}}
+@media(prefers-reduced-motion:no-preference){.next{animation:up .5s ease-out}@keyframes up{from{transform:translateY(14px);opacity:0}}}
+</style>
+</head>
+<body>
+<header class="band hero">
+  <div class="wrap">
+    <div class="kick">DMHC Shinty · JO11-1 · zaalseizoen 2026/2027</div>
+    <h1>Wie doet wat?</h1>
+    <form id="lock" class="next lockcard" autocomplete="on">
+      <div class="nb">
+        <h3>Alleen voor ouders van JO11-1</h3>
+        <p class="note" style="margin:4px 0 12px">Het wachtwoord staat in de beschrijving van de WhatsApp-groep.</p>
+        <label for="pw" class="lbl">Wachtwoord</label>
+        <div class="pwrow"><input id="pw" type="password" autocomplete="current-password" required><button class="btn solid" type="submit">Openen</button></div>
+        <label class="toggle"><input type="checkbox" id="remember" checked> Onthoud op dit apparaat</label>
+        <p id="err" class="err" role="alert"></p>
+      </div>
+    </form>
+    <div id="next"></div>
+  </div>
+</header>
+
+<div id="app" hidden>
+<section class="band">
+  <div class="wrap">
+    <h2>Kies je kind</h2>
+    <div class="chips" id="kids" role="group" aria-label="Kies je kind"></div>
+    <div id="mine"></div>
+  </div>
+</section>
+
+<section class="band" style="background:var(--card)">
+  <div class="wrap">
+    <h2>Programma</h2>
+    <div class="legend"><span><i class="kind k-training"></i>Training</span><span><i class="kind k-veld"></i>Veld</span><span><i class="kind k-zaal"></i>Zaal</span><span><i class="kind k-zaalleiding"></i>Zaal met zaalleiding Shinty</span></div>
+    <label class="toggle"><input type="checkbox" id="showPast"> Toon ook voorbije activiteiten</label>
+    <ul class="list" id="all"></ul>
+  </div>
+</section>
+
+<section class="band info">
+  <div class="wrap">
+    <h2>Goed om te weten</h2>
+    <div id="info"></div>
+  </div>
+</section>
+
+<footer class="band">
+  <div class="wrap">
+    <p>Bijgewerkt <span id="upd"></span>. Het programma kan nog veranderen; wij checken vrijdagavond MatchCenter.</p>
+    <p>Vragen, ruilverzoeken of feedback graag in een privébericht aan Sander, Jacco of Alex.</p>
+    <div class="btns" id="feedbox"></div>
+    <p class="note">De teamagenda bevat trainingen en wedstrijden, zonder namen. Wijzigingen komen vanzelf binnen. Taken per kind zie je alleen hier.</p>
+    <p><button class="btn" id="logout" type="button">Vergrendel op dit apparaat</button></p>
+  </div>
+</footer>
+</div>
+
+<script id="vault" type="application/json">{"salt": "wFD6XiUBj4bCn8VQUXaYjw==", "iv": "BbED7cfgvdbD1N4i", "iter": 310000, "ct": "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"}</script>
+<script id="cfg" type="application/json">{"feed": "../agenda/_9x9S-7CRnZaKRq0tj7zWFhF.ics", "team": "DMHC Shinty JO11-1"}</script>
+<script>
+{
+const $=id=>document.getElementById(id);
+let DATA=null,EV=[];
+/* ontsleutelen: PBKDF2-SHA256 -> AES-256-GCM, zelfde parameters als het bouwscript */
+const VAULT=JSON.parse($('vault').textContent);
+const b64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
+/* hoofdletters en spaties maken niet uit: zelfde normalisatie als build.py */
+const norm=p=>String(p).toLowerCase().replace(/\s+/g,'');
+const CFG=JSON.parse($('cfg').textContent);
+async function decrypt(pw){
+  const base=await crypto.subtle.importKey('raw',new TextEncoder().encode(norm(pw)),'PBKDF2',false,['deriveKey']);
+  const key=await crypto.subtle.deriveKey({name:'PBKDF2',salt:b64(VAULT.salt),iterations:VAULT.iter,hash:'SHA-256'},base,{name:'AES-GCM',length:256},false,['decrypt']);
+  const pt=await crypto.subtle.decrypt({name:'AES-GCM',iv:b64(VAULT.iv)},key,b64(VAULT.ct));
+  return JSON.parse(new TextDecoder().decode(pt));
+}
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const WD=['zo','ma','di','wo','do','vr','za'],MO=['jan','feb','mrt','apr','mei','jun','jul','aug','sep','okt','nov','dec'];
+const dt=s=>{const[y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d)};
+const now=new Date(),todayStr=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+const isPast=e=>e.d<todayStr;
+const fmt=e=>{const x=dt(e.d);return{wd:WD[x.getDay()],dn:x.getDate(),mo:MO[x.getMonth()]}};
+const isMatch=e=>e.type!=='training';
+const maps=w=>'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(w);
+const names=a=>Array.isArray(a)?a.join(', '):'';
+const rijText=e=>e.rijden==='volgt'?'<span class="tbd">volgt</span>':e.rijden==='eigen'?'Eigen gelegenheid':'Ouders van '+esc(names(e.rijden))+(e.rijNote?` <span class="tbd">(${esc(e.rijNote)})</span>`:'');
+let kid=null;try{kid=localStorage.getItem('jo11kid')}catch(_){}
+
+/* taken van één kind op één activiteit */
+function tags(e,k){
+  const t=[];
+  const el=(DATA.elders||{})[k];if(el&&e.type.startsWith('zaal'))return[['elders',el]];
+  if(e.keeper===k)t.push(['keeper','Keeper']);
+  if(e.captain===k)t.push(['captain','Captain']);
+  if(e.fruit===k)t.push(['fruit','Fruit / keepersmaatje']);
+  if(Array.isArray(e.rijden)&&e.rijden.includes(k))t.push(['rijden','Ouders rijden']);
+  if((e.rust||[]).includes(k))t.push(['rust','Rust']);
+  if((e.afwezig||[]).includes(k))t.push(['afwezig','Afwezig']);
+  if(isMatch(e)&&!t.some(x=>x[0]==='rust'||x[0]==='afwezig'))t.unshift(['speelt','Speelt']);
+  return t;
+}
+const pills=t=>t.map(([c,l])=>`<span class="pill p-${c}">${esc(l)}</span>`).join('');
+
+/* agenda: start = verzamelen (of 15 min voor training), eind = laatste tijd + duur */
+const hm=s=>{const m=String(s||'').match(/(\d{1,2}):(\d{2})/g);return m?m.map(x=>x.split(':').map(Number)):[]};
+function span(e){
+  const ts=hm(e.tijd),v=hm(e.verz)[0];let s=v||ts[0],end;
+  if(e.type==='training'){s=[ts[0][0],ts[0][1]-15];end=ts[1]||[ts[0][0]+1,ts[0][1]]}
+  else{const l=ts[ts.length-1];end=[l[0],l[1]+(e.type==='veld'?80:40)]}
+  const mk=a=>{const x=dt(e.d);x.setHours(a[0],a[1],0,0);return x};
+  return[mk(s),mk(end)];
+}
+const stamp=x=>`${x.getFullYear()}${String(x.getMonth()+1).padStart(2,'0')}${String(x.getDate()).padStart(2,'0')}T${String(x.getHours()).padStart(2,'0')}${String(x.getMinutes()).padStart(2,'0')}00`;
+const title=e=>'JO11-1: '+e.wat.replace(/^(Veld|Zaal[^:]*): /,'');
+function desc(e,k){
+  const l=[`Tijd: ${e.tijd}`];if(e.verz)l.push(`Verzamelen: ${e.verz}`);
+  if(k){const t=tags(e,k).map(x=>x[1]);if(t.length)l.push(`${k}: ${t.join(', ')}`)}
+  if(e.keeper)l.push(`Keeper: ${e.keeper} · Captain: ${e.captain} · Fruit: ${e.fruit}`);
+  if(e.dienst)l.push(e.dienst);l.push('Kan nog wijzigen; check het overzicht.');return l.join('\n');
+}
+function gcal(e,k){const[a,b]=span(e);return'https://calendar.google.com/calendar/render?action=TEMPLATE&ctz=Europe/Amsterdam&text='+encodeURIComponent(title(e))+'&dates='+stamp(a)+'/'+stamp(b)+'&location='+encodeURIComponent(e.waar)+'&details='+encodeURIComponent(desc(e,k))}
+function ics(list,k){
+  const q=s=>String(s).replace(/\\/g,'\\\\').replace(/\n/g,'\\n').replace(/([,;])/g,'\\$1');
+  const L=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//JO11-1 Shinty//NL','CALSCALE:GREGORIAN'];
+  list.forEach(e=>{const[a,b]=span(e);L.push('BEGIN:VEVENT',`UID:jo11-${e.d}-${e.type}@shinty`,`DTSTAMP:${stamp(new Date())}`,`DTSTART;TZID=Europe/Amsterdam:${stamp(a)}`,`DTEND;TZID=Europe/Amsterdam:${stamp(b)}`,`SUMMARY:${q(title(e))}`,`LOCATION:${q(e.waar)}`,`DESCRIPTION:${q(desc(e,k))}`,'END:VEVENT')});
+  L.push('END:VCALENDAR');return L.join('\r\n');
+}
+let downloads=null;
+async function saveIcs(list,k,name){if(!downloads)return;try{await downloads.save({filename:name,data:ics(list,k)})}catch(_){}}
+
+function roleGrid(e){
+  const r=[];
+  if(e.verz)r.push(['Verzamelen',esc(e.verz)]);
+  if(e.keeper)r.push(['Keeper',esc(e.keeper)]);
+  if(e.captain)r.push(['Captain',esc(e.captain)]);
+  if(e.fruit)r.push(['Fruit / keepersmaatje',esc(e.fruit)]);
+  if(e.rust)r.push(['Rust',esc(names(e.rust))]);
+  if(e.afwezig)r.push(['Afwezig',esc(names(e.afwezig))]);
+  r.push(['Rijden',rijText(e)]);
+  return `<div class="roles">${r.map(([b,s])=>`<div class="role"><b>${b}</b><span>${s}</span></div>`).join('')}</div>`+(e.dienst?`<p class="note">${esc(e.dienst)}</p>`:'');
+}
+
+function renderNext(){
+  const e=EV.find(x=>!isPast(x));
+  if(!e){$('next').innerHTML='<div class="next"><div class="nb">Het seizoen zit erop. Tot het volgende!</div></div>';return}
+  const f=fmt(e),i=EV.indexOf(e);
+  $('next').innerHTML=`<article class="next"><div class="date"><span class="wd">${f.wd}</span><span class="dn">${f.dn}</span><span class="mo">${f.mo}</span></div>
+  <div class="nb"><div class="when">${e.d===todayStr?'Vandaag':'Eerstvolgend'}</div><h3>${esc(e.wat)}</h3>
+  <dl class="meta"><dt>Tijd</dt><dd>${esc(e.tijd)}</dd><dt>Waar</dt><dd><a href="${maps(e.waar)}">${esc(e.waar)}</a></dd></dl>
+  ${kid?`<div>${pills(tags(e,kid))}</div>`:''}${roleGrid(e)}
+  <div class="btns"><a class="btn" href="${gcal(e,kid)}">Zet in Google Agenda</a>${downloads?`<button class="btn" data-ics="${i}">Agendabestand (iPhone/Outlook)</button>`:''}</div></div></article>`;
+}
+
+function renderKids(){
+  $('kids').innerHTML=DATA.kids.map(k=>`<button class="chip" aria-pressed="${k===kid}" data-kid="${esc(k)}">${esc(k)}</button>`).join('');
+  if(!kid){$('mine').innerHTML='<p class="empty">Kies hierboven je kind, dan zie je al zijn taken voor het hele seizoen.</p>';return}
+  const up=EV.filter(e=>!isPast(e)),all=EV;
+  const cnt=c=>all.filter(e=>tags(e,kid).some(t=>t[0]===c)).length;
+  const withTask=up.filter(e=>tags(e,kid).some(t=>['keeper','captain','fruit','rijden','rust','afwezig'].includes(t[0])));
+  $('mine').innerHTML=`<div class="sum"><div><span class="big">${cnt('keeper')}</span><small>keeper</small></div><div><span class="big">${cnt('captain')}</span><small>captain</small></div><div><span class="big">${cnt('fruit')}</span><small>fruit</small></div><div><span class="big">${cnt('rijden')}</span><small>rijbeurten</small></div><div><span class="big">${cnt('rust')}</span><small>rust</small></div></div>
+  <p class="note">Hele seizoen geteld. Rijbeurten na 6 dec volgen nog.</p>
+  <h3 style="font-size:22px;margin:18px 0 4px">Komende taken van ${esc(kid)}</h3>
+  ${withTask.length?`<ul class="list">${withTask.map(e=>{const f=fmt(e);return`<li class="ev"><div class="d">${f.dn} ${f.mo}<small>${f.wd}</small></div><div><div class="t">${esc(e.wat)}</div><div class="w">${esc(e.tijd)}${e.verz?' · verzamelen '+esc(e.verz):''}</div><div>${pills(tags(e,kid))}</div><div class="btns"><a class="btn" href="${gcal(e,kid)}">Google Agenda</a></div></div></li>`}).join('')}</ul>`:'<p class="empty">Nog geen taken ingepland.</p>'}
+  ${downloads?`<div class="btns"><button class="btn solid" data-season="1">Hele seizoen van ${esc(kid)} in je agenda</button></div><p class="note">Een momentopname: bij wijzigingen opnieuw toevoegen.</p>`:''}`;
+}
+
+function renderAll(){
+  const sp=$('showPast').checked,list=EV.filter(e=>sp||!isPast(e));
+  $('all').innerHTML=list.map(e=>{const f=fmt(e);return`<li class="ev${isPast(e)?' past':''}"><div class="d">${f.dn} ${f.mo}<small>${f.wd}</small></div><div>
+    <div class="t"><i class="kind k-${e.type}"></i>${esc(e.wat)}</div><div class="w">${esc(e.tijd)} · <a href="${maps(e.waar)}">${esc(e.waar)}</a></div>
+    ${kid?`<div>${pills(tags(e,kid))}</div>`:''}
+    <details><summary>Wie doet wat</summary>${roleGrid(e)}<div class="btns"><a class="btn" href="${gcal(e,kid)}">Google Agenda</a></div></details></div></li>`}).join('');
+}
+
+function renderInfo(){
+  $('info').innerHTML=DATA.info.map(([h,p])=>`<details><summary>${esc(h)}</summary><p>${esc(p)}</p></details>`).join('');
+  $('upd').textContent=DATA.updated;
+}
+const renderAllViews=()=>{renderNext();renderKids();renderAll()};
+
+document.addEventListener('click',ev=>{
+  const c=ev.target.closest('[data-kid]');
+  if(c){const k=c.dataset.kid;kid=kid===k?null:k;try{kid?localStorage.setItem('jo11kid',kid):localStorage.removeItem('jo11kid')}catch(_){}renderAllViews();return}
+  const b=ev.target.closest('[data-ics]');if(b){const e=EV[+b.dataset.ics];saveIcs([e],kid,`jo11-${e.d}.ics`);return}
+  if(ev.target.closest('[data-season]')){const list=EV.filter(e=>!isPast(e)&&!((DATA.elders||{})[kid]&&e.type.startsWith('zaal')));saveIcs(list,kid,`jo11-${kid.replace(/\s+/g,'-').toLowerCase()}.ics`)}
+});
+$('showPast').addEventListener('change',renderAll);
+
+/* app tonen na ontsleutelen */
+function feed(){if(!CFG.feed)return;const u=new URL(CFG.feed,location.href);$('feedbox').innerHTML=`<a class="btn solid" href="webcal://${esc(u.host+u.pathname)}">Abonneer op teamagenda</a><a class="btn" href="https://calendar.google.com/calendar/r?cid=${encodeURIComponent('webcal://'+u.host+u.pathname)}">Google Agenda</a>`}
+function start(d){feed();
+  DATA=d;EV=d.events;if(!DATA.kids.includes(kid))kid=null;
+  $('lock').hidden=true;$('app').hidden=false;renderInfo();renderAllViews();
+  if(window.claude&&claude.use)claude.use('downloads').then(x=>{if(x){downloads=x;renderAllViews()}}).catch(()=>{});
+}
+$('lock').addEventListener('submit',async ev=>{
+  ev.preventDefault();const pw=$('pw').value;$('err').textContent='';
+  try{const d=await decrypt(pw);try{$('remember').checked?localStorage.setItem('jo11pw',pw):localStorage.removeItem('jo11pw')}catch(_){}start(d)}
+  catch(_){$('err').textContent='Dat wachtwoord klopt niet. Kijk in de groepsbeschrijving.';$('pw').select()}
+});
+$('logout').addEventListener('click',()=>{try{localStorage.removeItem('jo11pw')}catch(_){}location.reload()});
+let saved=null;try{saved=localStorage.getItem('jo11pw')}catch(_){}
+if(saved)decrypt(saved).then(start).catch(()=>{try{localStorage.removeItem('jo11pw')}catch(_){}});
+}
+</script>
+</body>
+</html>

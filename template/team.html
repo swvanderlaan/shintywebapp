@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>JO11-1 Shinty – Wie doet wat</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* VOICE: vriendelijk, praktisch, zoals een teammanager langs de lijn
+   IDEA: het wedstrijdbriefje / opstellingsbord in de dug-out
+   PICTURE: de kaart van de eerstvolgende activiteit zelf, groot bovenaan
+   COLOUR and TYPE: Shinty-tenue: donkergroen, wit, rode bies, lichtgrijs; Barlow Condensed + Barlow
+   LAYOUT: één kolom, kaart bovenaan, dan kind kiezen, dan programma, dan info */
+:root{color-scheme:light dark;
+  --bg:light-dark(#ffffff,#07140e);--ink:light-dark(#10201a,#eef5f0);--soft:light-dark(#5c6b63,#a8bcb0);
+  --turf:light-dark(#0f5a32,#0e4a2b);--turf2:light-dark(#0a4325,#08331d);--line:light-dark(#e2e8e4,#1d3a2b);
+  --card:light-dark(#f2f5f3,#0f2219);--ball:#d42a2f;--ok:light-dark(#0b7a46,#5fd69b);--rest:light-dark(#8a5a00,#ffc566)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 Barlow,system-ui,sans-serif;overflow-x:clip}
+h1,h2,h3,.big{font-family:"Barlow Condensed",Barlow,sans-serif;font-weight:800;line-height:1.05;margin:0;text-wrap:balance}
+h2{font-size:30px;margin-bottom:14px}
+.band{padding:clamp(24px,4vw,56px) max(5vw,16px)}
+.wrap{max-width:860px;margin:0 auto}
+a{color:inherit}
+.hero{background:linear-gradient(160deg,var(--turf),var(--turf2));color:#fff;position:relative;overflow:hidden}
+.hero::before{content:"";position:absolute;inset:0;background:linear-gradient(to bottom right,transparent 0 74%,var(--ball) 74% 75.3%,light-dark(#ffffff,#dfe5e1) 75.3%);pointer-events:none}
+.hero .wrap{position:relative;z-index:1}
+.kick{font-weight:600;opacity:.85;font-size:15px}
+.hero h1{font-size:clamp(34px,6vw,50px);margin:4px 0 18px}
+.next{position:relative;background:#fff;color:#0c1630;border-radius:18px;display:grid;grid-template-columns:110px minmax(0,1fr);overflow:hidden;box-shadow:0 18px 40px rgba(0,40,20,.35)}
+:root[data-theme=dark] .next,:root:not([data-theme=light]) .next{background:light-dark(#fff,#0f2219);color:var(--ink)}
+.date{background:var(--ball);color:#fff;text-align:center;padding:18px 8px;display:flex;flex-direction:column;justify-content:center}
+.date .wd{font-size:18px;font-weight:600;text-transform:lowercase}.date .dn{font-size:52px;font-family:"Barlow Condensed";font-weight:800;line-height:1}.date .mo{font-size:18px;font-weight:600}
+.nb{padding:16px 18px}
+.when{font-size:15px;color:var(--soft);font-weight:600}
+.nb h3{font-size:28px;margin:2px 0 6px}
+.meta{display:grid;grid-template-columns:7.5em minmax(0,1fr);gap:2px 10px;font-size:16px;margin:8px 0 4px}
+.meta dt{color:var(--soft)}.meta dd{margin:0;font-weight:600}
+.roles{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin-top:12px}
+.role{background:light-dark(#f2f5f3,#183326);border-radius:12px;padding:8px 12px}
+.role b{display:block;font-size:13px;color:var(--soft);font-weight:600}
+.role span{font-weight:600}
+.note{font-size:15px;color:var(--soft);margin-top:8px}
+.tbd{color:var(--soft);font-style:italic;font-weight:500}
+.pill{display:inline-block;font-size:13px;font-weight:600;padding:2px 9px;border-radius:99px;background:var(--card);margin:2px 4px 2px 0;white-space:nowrap}
+.p-keeper{background:var(--ball);color:#fff}.p-captain{background:var(--turf);color:#fff}.p-fruit{background:#ffe08a;color:#4a3500}
+.p-rijden{background:light-dark(#e3e7e4,#2a3a32);color:var(--ink)}.p-rust,.p-afwezig{background:light-dark(#fff1d6,#3a2a05);color:var(--rest)}.p-speelt{color:var(--ok)}
+.p-elders{color:var(--soft)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font:600 16px Barlow,sans-serif;min-height:44px;padding:8px 16px;border-radius:99px;border:2px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+.chip[aria-pressed=true]{background:var(--turf);border-color:var(--turf);color:#fff}
+.chip:focus-visible,.btn:focus-visible,summary:focus-visible{outline:3px solid var(--ball);outline-offset:2px}
+.sum{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0 4px}
+.sum div{background:var(--card);border-radius:12px;padding:8px 14px;text-align:center;flex:1 1 90px}
+.sum .big{font-size:30px;display:block}.sum small{color:var(--soft);font-weight:600}
+.list{list-style:none;margin:0;padding:0}
+.ev{display:grid;grid-template-columns:76px minmax(0,1fr);gap:12px;padding:14px 0;border-bottom:1px solid var(--line)}
+.ev .d{font-family:"Barlow Condensed";font-weight:800;font-size:22px;line-height:1.05;white-space:nowrap}
+.ev .d small{display:block;font-family:Barlow;font-weight:600;font-size:14px;color:var(--soft)}
+.ev .t{font-weight:600}.ev .w{font-size:15px;color:var(--soft)}
+.ev.past{opacity:.5}
+.ev details{margin-top:6px}.ev summary{cursor:pointer;font-size:15px;font-weight:600;color:var(--turf);min-height:32px}
+:root[data-theme=dark] .ev summary{color:#8fd3aa}
+.kind{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:1px}
+.k-training{background:#9aa6c4}.k-veld{background:#2fb36b}.k-zaal{background:var(--turf)}.k-zaalleiding{background:var(--ball)}
+.btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.btn{display:inline-flex;align-items:center;min-height:40px;padding:6px 14px;border-radius:10px;border:2px solid var(--line);background:var(--bg);color:var(--ink);font:600 15px Barlow,sans-serif;text-decoration:none;cursor:pointer}
+.btn.solid{background:var(--ball);border-color:var(--ball);color:#fff}
+.toggle{display:flex;align-items:center;gap:8px;font-weight:600;font-size:15px;margin:6px 0 4px;min-height:44px}
+.toggle input{width:20px;height:20px}
+.info details{border-bottom:1px solid var(--line);padding:10px 0}
+.info summary{font-weight:600;cursor:pointer;min-height:36px}
+.info p{margin:6px 0 4px;max-width:68ch}
+.empty{color:var(--soft);padding:12px 0}
+footer{font-size:14px;color:var(--soft)}
+[hidden]{display:none!important}
+.lockcard{display:block;max-width:520px}
+.lbl{display:block;font-weight:600;font-size:15px;margin-bottom:4px}
+.pwrow{display:flex;gap:8px}.pwrow input{flex:1;font:16px Barlow,sans-serif;min-height:44px;padding:8px 12px;border-radius:10px;border:2px solid var(--line);background:var(--bg);color:var(--ink)}
+.pwrow input:focus-visible{outline:3px solid var(--ball);outline-offset:1px}
+.err{color:#d23a1a;font-weight:600;min-height:1.5em;margin:4px 0 0}
+.legend{display:flex;flex-wrap:wrap;gap:4px 16px;font-size:14px;color:var(--soft);margin-bottom:6px}
+@media(max-width:600px){.next{grid-template-columns:1fr}.date{flex-direction:row;gap:10px;align-items:baseline;justify-content:flex-start;padding:10px 18px}.date .dn{font-size:34px}
+  .meta{grid-template-columns:6.5em minmax(0,1fr)}.ev{grid-template-columns:62px minmax(0,1fr)}}
+@media(prefers-reduced-motion:no-preference){.next{animation:up .5s ease-out}@keyframes up{from{transform:translateY(14px);opacity:0}}}
+</style>
+</head>
+<body>
+<header class="band hero">
+  <div class="wrap">
+    <div class="kick">DMHC Shinty · JO11-1 · zaalseizoen 2026/2027</div>
+    <h1>Wie doet wat?</h1>
+    <form id="lock" class="next lockcard" autocomplete="on">
+      <div class="nb">
+        <h3>Alleen voor ouders van JO11-1</h3>
+        <p class="note" style="margin:4px 0 12px">Het wachtwoord staat in de beschrijving van de WhatsApp-groep.</p>
+        <label for="pw" class="lbl">Wachtwoord</label>
+        <div class="pwrow"><input id="pw" type="password" autocomplete="current-password" required><button class="btn solid" type="submit">Openen</button></div>
+        <label class="toggle"><input type="checkbox" id="remember" checked> Onthoud op dit apparaat</label>
+        <p id="err" class="err" role="alert"></p>
+      </div>
+    </form>
+    <div id="next"></div>
+  </div>
+</header>
+
+<div id="app" hidden>
+<section class="band">
+  <div class="wrap">
+    <h2>Kies je kind</h2>
+    <div class="chips" id="kids" role="group" aria-label="Kies je kind"></div>
+    <div id="mine"></div>
+  </div>
+</section>
+
+<section class="band" style="background:var(--card)">
+  <div class="wrap">
+    <h2>Programma</h2>
+    <div class="legend"><span><i class="kind k-training"></i>Training</span><span><i class="kind k-veld"></i>Veld</span><span><i class="kind k-zaal"></i>Zaal</span><span><i class="kind k-zaalleiding"></i>Zaal met zaalleiding Shinty</span></div>
+    <label class="toggle"><input type="checkbox" id="showPast"> Toon ook voorbije activiteiten</label>
+    <ul class="list" id="all"></ul>
+  </div>
+</section>
+
+<section class="band info">
+  <div class="wrap">
+    <h2>Goed om te weten</h2>
+    <div id="info"></div>
+  </div>
+</section>
+
+<footer class="band">
+  <div class="wrap">
+    <p>Bijgewerkt <span id="upd"></span>. Het programma kan nog veranderen; wij checken vrijdagavond MatchCenter.</p>
+    <p>Vragen, ruilverzoeken of feedback graag in een privébericht aan Sander, Jacco of Alex.</p>
+    <div class="btns" id="feedbox"></div>
+    <p class="note">De teamagenda bevat trainingen en wedstrijden, zonder namen. Wijzigingen komen vanzelf binnen. Taken per kind zie je alleen hier.</p>
+    <p><button class="btn" id="logout" type="button">Vergrendel op dit apparaat</button></p>
+  </div>
+</footer>
+</div>
+
+<script id="vault" type="application/json">__VAULT__</script>
+<script id="cfg" type="application/json">__CFG__</script>
+<script>
+{
+const $=id=>document.getElementById(id);
+let DATA=null,EV=[];
+/* ontsleutelen: PBKDF2-SHA256 -> AES-256-GCM, zelfde parameters als het bouwscript */
+const VAULT=JSON.parse($('vault').textContent);
+const b64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
+/* hoofdletters en spaties maken niet uit: zelfde normalisatie als build.py */
+const norm=p=>String(p).toLowerCase().replace(/\s+/g,'');
+const CFG=JSON.parse($('cfg').textContent);
+async function decrypt(pw){
+  const base=await crypto.subtle.importKey('raw',new TextEncoder().encode(norm(pw)),'PBKDF2',false,['deriveKey']);
+  const key=await crypto.subtle.deriveKey({name:'PBKDF2',salt:b64(VAULT.salt),iterations:VAULT.iter,hash:'SHA-256'},base,{name:'AES-GCM',length:256},false,['decrypt']);
+  const pt=await crypto.subtle.decrypt({name:'AES-GCM',iv:b64(VAULT.iv)},key,b64(VAULT.ct));
+  return JSON.parse(new TextDecoder().decode(pt));
+}
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const WD=['zo','ma','di','wo','do','vr','za'],MO=['jan','feb','mrt','apr','mei','jun','jul','aug','sep','okt','nov','dec'];
+const dt=s=>{const[y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d)};
+const now=new Date(),todayStr=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+const isPast=e=>e.d<todayStr;
+const fmt=e=>{const x=dt(e.d);return{wd:WD[x.getDay()],dn:x.getDate(),mo:MO[x.getMonth()]}};
+const isMatch=e=>e.type!=='training';
+const maps=w=>'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(w);
+const names=a=>Array.isArray(a)?a.join(', '):'';
+const rijText=e=>e.rijden==='volgt'?'<span class="tbd">volgt</span>':e.rijden==='eigen'?'Eigen gelegenheid':'Ouders van '+esc(names(e.rijden))+(e.rijNote?` <span class="tbd">(${esc(e.rijNote)})</span>`:'');
+let kid=null;try{kid=localStorage.getItem('jo11kid')}catch(_){}
+
+/* taken van één kind op één activiteit */
+function tags(e,k){
+  const t=[];
+  const el=(DATA.elders||{})[k];if(el&&e.type.startsWith('zaal'))return[['elders',el]];
+  if(e.keeper===k)t.push(['keeper','Keeper']);
+  if(e.captain===k)t.push(['captain','Captain']);
+  if(e.fruit===k)t.push(['fruit','Fruit / keepersmaatje']);
+  if(Array.isArray(e.rijden)&&e.rijden.includes(k))t.push(['rijden','Ouders rijden']);
+  if((e.rust||[]).includes(k))t.push(['rust','Rust']);
+  if((e.afwezig||[]).includes(k))t.push(['afwezig','Afwezig']);
+  if(isMatch(e)&&!t.some(x=>x[0]==='rust'||x[0]==='afwezig'))t.unshift(['speelt','Speelt']);
+  return t;
+}
+const pills=t=>t.map(([c,l])=>`<span class="pill p-${c}">${esc(l)}</span>`).join('');
+
+/* agenda: start = verzamelen (of 15 min voor training), eind = laatste tijd + duur */
+const hm=s=>{const m=String(s||'').match(/(\d{1,2}):(\d{2})/g);return m?m.map(x=>x.split(':').map(Number)):[]};
+function span(e){
+  const ts=hm(e.tijd),v=hm(e.verz)[0];let s=v||ts[0],end;
+  if(e.type==='training'){s=[ts[0][0],ts[0][1]-15];end=ts[1]||[ts[0][0]+1,ts[0][1]]}
+  else{const l=ts[ts.length-1];end=[l[0],l[1]+(e.type==='veld'?80:40)]}
+  const mk=a=>{const x=dt(e.d);x.setHours(a[0],a[1],0,0);return x};
+  return[mk(s),mk(end)];
+}
+const stamp=x=>`${x.getFullYear()}${String(x.getMonth()+1).padStart(2,'0')}${String(x.getDate()).padStart(2,'0')}T${String(x.getHours()).padStart(2,'0')}${String(x.getMinutes()).padStart(2,'0')}00`;
+const title=e=>'JO11-1: '+e.wat.replace(/^(Veld|Zaal[^:]*): /,'');
+function desc(e,k){
+  const l=[`Tijd: ${e.tijd}`];if(e.verz)l.push(`Verzamelen: ${e.verz}`);
+  if(k){const t=tags(e,k).map(x=>x[1]);if(t.length)l.push(`${k}: ${t.join(', ')}`)}
+  if(e.keeper)l.push(`Keeper: ${e.keeper} · Captain: ${e.captain} · Fruit: ${e.fruit}`);
+  if(e.dienst)l.push(e.dienst);l.push('Kan nog wijzigen; check het overzicht.');return l.join('\n');
+}
+function gcal(e,k){const[a,b]=span(e);return'https://calendar.google.com/calendar/render?action=TEMPLATE&ctz=Europe/Amsterdam&text='+encodeURIComponent(title(e))+'&dates='+stamp(a)+'/'+stamp(b)+'&location='+encodeURIComponent(e.waar)+'&details='+encodeURIComponent(desc(e,k))}
+function ics(list,k){
+  const q=s=>String(s).replace(/\\/g,'\\\\').replace(/\n/g,'\\n').replace(/([,;])/g,'\\$1');
+  const L=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//JO11-1 Shinty//NL','CALSCALE:GREGORIAN'];
+  list.forEach(e=>{const[a,b]=span(e);L.push('BEGIN:VEVENT',`UID:jo11-${e.d}-${e.type}@shinty`,`DTSTAMP:${stamp(new Date())}`,`DTSTART;TZID=Europe/Amsterdam:${stamp(a)}`,`DTEND;TZID=Europe/Amsterdam:${stamp(b)}`,`SUMMARY:${q(title(e))}`,`LOCATION:${q(e.waar)}`,`DESCRIPTION:${q(desc(e,k))}`,'END:VEVENT')});
+  L.push('END:VCALENDAR');return L.join('\r\n');
+}
+let downloads=null;
+async function saveIcs(list,k,name){if(!downloads)return;try{await downloads.save({filename:name,data:ics(list,k)})}catch(_){}}
+
+function roleGrid(e){
+  const r=[];
+  if(e.verz)r.push(['Verzamelen',esc(e.verz)]);
+  if(e.keeper)r.push(['Keeper',esc(e.keeper)]);
+  if(e.captain)r.push(['Captain',esc(e.captain)]);
+  if(e.fruit)r.push(['Fruit / keepersmaatje',esc(e.fruit)]);
+  if(e.rust)r.push(['Rust',esc(names(e.rust))]);
+  if(e.afwezig)r.push(['Afwezig',esc(names(e.afwezig))]);
+  r.push(['Rijden',rijText(e)]);
+  return `<div class="roles">${r.map(([b,s])=>`<div class="role"><b>${b}</b><span>${s}</span></div>`).join('')}</div>`+(e.dienst?`<p class="note">${esc(e.dienst)}</p>`:'');
+}
+
+function renderNext(){
+  const e=EV.find(x=>!isPast(x));
+  if(!e){$('next').innerHTML='<div class="next"><div class="nb">Het seizoen zit erop. Tot het volgende!</div></div>';return}
+  const f=fmt(e),i=EV.indexOf(e);
+  $('next').innerHTML=`<article class="next"><div class="date"><span class="wd">${f.wd}</span><span class="dn">${f.dn}</span><span class="mo">${f.mo}</span></div>
+  <div class="nb"><div class="when">${e.d===todayStr?'Vandaag':'Eerstvolgend'}</div><h3>${esc(e.wat)}</h3>
+  <dl class="meta"><dt>Tijd</dt><dd>${esc(e.tijd)}</dd><dt>Waar</dt><dd><a href="${maps(e.waar)}">${esc(e.waar)}</a></dd></dl>
+  ${kid?`<div>${pills(tags(e,kid))}</div>`:''}${roleGrid(e)}
+  <div class="btns"><a class="btn" href="${gcal(e,kid)}">Zet in Google Agenda</a>${downloads?`<button class="btn" data-ics="${i}">Agendabestand (iPhone/Outlook)</button>`:''}</div></div></article>`;
+}
+
+function renderKids(){
+  $('kids').innerHTML=DATA.kids.map(k=>`<button class="chip" aria-pressed="${k===kid}" data-kid="${esc(k)}">${esc(k)}</button>`).join('');
+  if(!kid){$('mine').innerHTML='<p class="empty">Kies hierboven je kind, dan zie je al zijn taken voor het hele seizoen.</p>';return}
+  const up=EV.filter(e=>!isPast(e)),all=EV;
+  const cnt=c=>all.filter(e=>tags(e,kid).some(t=>t[0]===c)).length;
+  const withTask=up.filter(e=>tags(e,kid).some(t=>['keeper','captain','fruit','rijden','rust','afwezig'].includes(t[0])));
+  $('mine').innerHTML=`<div class="sum"><div><span class="big">${cnt('keeper')}</span><small>keeper</small></div><div><span class="big">${cnt('captain')}</span><small>captain</small></div><div><span class="big">${cnt('fruit')}</span><small>fruit</small></div><div><span class="big">${cnt('rijden')}</span><small>rijbeurten</small></div><div><span class="big">${cnt('rust')}</span><small>rust</small></div></div>
+  <p class="note">Hele seizoen geteld. Rijbeurten na 6 dec volgen nog.</p>
+  <h3 style="font-size:22px;margin:18px 0 4px">Komende taken van ${esc(kid)}</h3>
+  ${withTask.length?`<ul class="list">${withTask.map(e=>{const f=fmt(e);return`<li class="ev"><div class="d">${f.dn} ${f.mo}<small>${f.wd}</small></div><div><div class="t">${esc(e.wat)}</div><div class="w">${esc(e.tijd)}${e.verz?' · verzamelen '+esc(e.verz):''}</div><div>${pills(tags(e,kid))}</div><div class="btns"><a class="btn" href="${gcal(e,kid)}">Google Agenda</a></div></div></li>`}).join('')}</ul>`:'<p class="empty">Nog geen taken ingepland.</p>'}
+  ${downloads?`<div class="btns"><button class="btn solid" data-season="1">Hele seizoen van ${esc(kid)} in je agenda</button></div><p class="note">Een momentopname: bij wijzigingen opnieuw toevoegen.</p>`:''}`;
+}
+
+function renderAll(){
+  const sp=$('showPast').checked,list=EV.filter(e=>sp||!isPast(e));
+  $('all').innerHTML=list.map(e=>{const f=fmt(e);return`<li class="ev${isPast(e)?' past':''}"><div class="d">${f.dn} ${f.mo}<small>${f.wd}</small></div><div>
+    <div class="t"><i class="kind k-${e.type}"></i>${esc(e.wat)}</div><div class="w">${esc(e.tijd)} · <a href="${maps(e.waar)}">${esc(e.waar)}</a></div>
+    ${kid?`<div>${pills(tags(e,kid))}</div>`:''}
+    <details><summary>Wie doet wat</summary>${roleGrid(e)}<div class="btns"><a class="btn" href="${gcal(e,kid)}">Google Agenda</a></div></details></div></li>`}).join('');
+}
+
+function renderInfo(){
+  $('info').innerHTML=DATA.info.map(([h,p])=>`<details><summary>${esc(h)}</summary><p>${esc(p)}</p></details>`).join('');
+  $('upd').textContent=DATA.updated;
+}
+const renderAllViews=()=>{renderNext();renderKids();renderAll()};
+
+document.addEventListener('click',ev=>{
+  const c=ev.target.closest('[data-kid]');
+  if(c){const k=c.dataset.kid;kid=kid===k?null:k;try{kid?localStorage.setItem('jo11kid',kid):localStorage.removeItem('jo11kid')}catch(_){}renderAllViews();return}
+  const b=ev.target.closest('[data-ics]');if(b){const e=EV[+b.dataset.ics];saveIcs([e],kid,`jo11-${e.d}.ics`);return}
+  if(ev.target.closest('[data-season]')){const list=EV.filter(e=>!isPast(e)&&!((DATA.elders||{})[kid]&&e.type.startsWith('zaal')));saveIcs(list,kid,`jo11-${kid.replace(/\s+/g,'-').toLowerCase()}.ics`)}
+});
+$('showPast').addEventListener('change',renderAll);
+
+/* app tonen na ontsleutelen */
+function feed(){if(!CFG.feed)return;const u=new URL(CFG.feed,location.href);$('feedbox').innerHTML=`<a class="btn solid" href="webcal://${esc(u.host+u.pathname)}">Abonneer op teamagenda</a><a class="btn" href="https://calendar.google.com/calendar/r?cid=${encodeURIComponent('webcal://'+u.host+u.pathname)}">Google Agenda</a>`}
+function start(d){feed();
+  DATA=d;EV=d.events;if(!DATA.kids.includes(kid))kid=null;
+  $('lock').hidden=true;$('app').hidden=false;renderInfo();renderAllViews();
+  if(window.claude&&claude.use)claude.use('downloads').then(x=>{if(x){downloads=x;renderAllViews()}}).catch(()=>{});
+}
+$('lock').addEventListener('submit',async ev=>{
+  ev.preventDefault();const pw=$('pw').value;$('err').textContent='';
+  try{const d=await decrypt(pw);try{$('remember').checked?localStorage.setItem('jo11pw',pw):localStorage.removeItem('jo11pw')}catch(_){}start(d)}
+  catch(_){$('err').textContent='Dat wachtwoord klopt niet. Kijk in de groepsbeschrijving.';$('pw').select()}
+});
+$('logout').addEventListener('click',()=>{try{localStorage.removeItem('jo11pw')}catch(_){}location.reload()});
+let saved=null;try{saved=localStorage.getItem('jo11pw')}catch(_){}
+if(saved)decrypt(saved).then(start).catch(()=>{try{localStorage.removeItem('jo11pw')}catch(_){}});
+}
+</script>
+</body>
+</html>
