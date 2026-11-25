@@ -44,7 +44,7 @@ SOFTWARE.
 """
 
 VERSION_NAME = "Shinty WebApp Sheet-to-data"
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 VERSION_DATE = "2026-11-25"
 
 import argparse
@@ -155,11 +155,26 @@ def keeper_sessions(keepers: list, spelers: list, hallen: dict) -> list:
     return out
 
 
+def other_team_matches(wed: list, spelers: list, hallen: dict) -> list:
+    """Wedstrijden van een ander team (bv. zaalteam) voor de spelers die daar spelen."""
+    out = []
+    for w in wed:
+        kids = sorted(s["naam"] for s in spelers if s.get("elders") == w.get("team"))
+        if not kids:
+            continue
+        e = {"d": w["datum"], "type": "elders", "team": w["team"], "wat": f"{w['team']}: {w.get('wedstrijd', '')}",
+             "tijd": w.get("tijd", ""), "waar": hall_text(w.get("hal", ""), hallen), "kids": kids}
+        if w.get("verzamelen"):
+            e["verz"] = w["verzamelen"]
+        out.append(e)
+    return out
+
+
 def attach_tasks(events: list, taken: list) -> int:
     """Koppel taken op datum aan de activiteit; geeft het aantal niet-gekoppelde taken."""
     unmatched = 0
     for t in taken:
-        same_day = [e for e in events if e["d"] == t.get("datum") and e["type"] != "keepers"]
+        same_day = [e for e in events if e["d"] == t.get("datum") and e["type"] not in ("keepers", "elders")]
         if len(same_day) > 1:   # meerdere activiteiten: training vs wedstrijd op naam
             want_training = (t.get("activiteit") or "").lower().startswith("training")
             same_day = [e for e in same_day if (e["type"] == "training") == want_training] or same_day
@@ -182,7 +197,7 @@ def attach_tasks(events: list, taken: list) -> int:
         if notes:
             e["dienst"] = " ".join(notes)
     for e in events:   # activiteiten zonder taken: rijden nog onbekend
-        if e["type"] != "keepers":
+        if e["type"] not in ("keepers", "elders"):
             e.setdefault("rijden", "volgt")
     return unmatched
 
@@ -195,6 +210,7 @@ def convert(exp: dict) -> dict:
     events = expand_trainings(tables.get("rooster", []), tables.get("uitz", []), hallen)
     events += matches(tables.get("wedstrijden", []), hallen)
     events += keeper_sessions(tables.get("keepers", []), spelers, hallen)
+    events += other_team_matches(tables.get("eldersWedstrijden", []), spelers, hallen)
     events.sort(key=lambda e: (e["d"], e["tijd"]))
     unmatched = attach_tasks(events, tables.get("taken", []))
     # opmerking bij training of wedstrijd zonder zaaldienst: toon als notitie
@@ -208,7 +224,7 @@ def convert(exp: dict) -> dict:
         "updated": f"{wd} {stamp.day} {MAANDEN[stamp.month - 1]} {stamp.year}, {stamp:%H:%M}",
         "team": exp.get("team"),
         "kids": sorted(s["naam"] for s in spelers),
-        "elders": {s["naam"]: s["elders"] for s in spelers if s.get("elders")},
+        "elders": {s["naam"]: f"speelt zaal bij {s['elders']}" for s in spelers if s.get("elders")},
         "events": events,
         "info": [[i["kop"], i["tekst"]] for i in tables.get("info", []) if i.get("kop")],
         "_unmatched": unmatched,
@@ -229,7 +245,7 @@ def main(argv=None) -> int:
     unmatched = data.pop("_unmatched")
     out = Path(args.output) if args.output else inp.with_name(f"{inp.stem}_annotated.json")
     out.write_text(json.dumps(data, ensure_ascii=False, indent=1), encoding="utf-8")
-    counts = {t: sum(e["type"] == t for e in data["events"]) for t in ("training", "veld", "zaal", "zaalleiding", "keepers")}
+    counts = {t: sum(e["type"] == t for e in data["events"]) for t in ("training", "veld", "zaal", "zaalleiding", "keepers", "elders")}
     log.info("Geschreven: %s — %s, %d spelers, %d taak/taken zonder activiteit",
              out.name, ", ".join(f"{v} {k}" for k, v in counts.items()), len(data["kids"]), unmatched)
     return 0

@@ -48,7 +48,7 @@ a{color:inherit}
 .pill{display:inline-block;font-size:13px;font-weight:600;padding:2px 9px;border-radius:99px;background:var(--card);margin:2px 4px 2px 0;white-space:nowrap}
 .p-keeper{background:var(--ball);color:#fff}.p-captain{background:var(--turf);color:#fff}.p-fruit{background:#ffe08a;color:#4a3500}
 .p-rijden{background:light-dark(#e3e7e4,#2a3a32);color:var(--ink)}.p-rust,.p-afwezig{background:light-dark(#fff1d6,#3a2a05);color:var(--rest)}.p-speelt{color:var(--ok)}
-.p-elders{color:var(--soft)}.p-keepers{background:light-dark(#ffe1e1,#4a1416);color:light-dark(#8a1418,#ffb3b5)}
+.p-elders{color:var(--soft)}.p-zaalteam{background:light-dark(#dff1e6,#163a27);color:light-dark(#0f5a32,#8fd3aa);border:1px solid currentColor}.p-keepers{background:light-dark(#ffe1e1,#4a1416);color:light-dark(#8a1418,#ffb3b5)}
 .chips{display:flex;flex-wrap:wrap;gap:8px}
 .chip{font:600 16px Barlow,sans-serif;min-height:44px;padding:8px 16px;border-radius:99px;border:2px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
 .chip[aria-pressed=true]{background:var(--turf);border-color:var(--turf);color:#fff}
@@ -65,7 +65,7 @@ a{color:inherit}
 .ev details{margin-top:6px}.ev summary{cursor:pointer;font-size:15px;font-weight:600;color:var(--turf);min-height:32px}
 :root[data-theme=dark] .ev summary{color:#8fd3aa}
 .kind{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:1px}
-.k-training{background:#9aa6c4}.k-veld{background:#2fb36b}.k-zaal{background:var(--turf)}.k-zaalleiding{background:var(--ball)}.k-keepers{background:#f2a900}
+.k-training{background:#9aa6c4}.k-veld{background:#2fb36b}.k-zaal{background:var(--turf)}.k-zaalleiding{background:var(--ball)}.k-keepers{background:#f2a900}.k-elders{background:transparent;border:2px solid var(--turf)}
 .btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
 .btn{display:inline-flex;align-items:center;min-height:40px;padding:6px 14px;border-radius:10px;border:2px solid var(--line);background:var(--bg);color:var(--ink);font:600 15px Barlow,sans-serif;text-decoration:none;cursor:pointer}
 .btn.solid{background:var(--ball);border-color:var(--ball);color:#fff}
@@ -119,7 +119,7 @@ footer{font-size:14px;color:var(--soft)}
 <section class="band" style="background:var(--card)">
   <div class="wrap">
     <h2>Programma</h2>
-    <div class="legend"><span><i class="kind k-training"></i>Training</span><span><i class="kind k-veld"></i>Veld</span><span><i class="kind k-zaal"></i>Zaal</span><span><i class="kind k-zaalleiding"></i>Zaal met zaalleiding Shinty</span><span><i class="kind k-keepers"></i>Keeperstraining</span></div>
+    <div class="legend"><span><i class="kind k-training"></i>Training</span><span><i class="kind k-veld"></i>Veld</span><span><i class="kind k-zaal"></i>Zaal</span><span><i class="kind k-zaalleiding"></i>Zaal met zaalleiding Shinty</span><span><i class="kind k-keepers"></i>Keeperstraining</span><span><i class="kind k-elders"></i>Ander team (bij gekozen kind)</span></div>
     <label class="toggle"><input type="checkbox" id="showPast"> Toon ook voorbije activiteiten</label>
     <ul class="list" id="all"></ul>
   </div>
@@ -177,6 +177,7 @@ let kid=null;try{kid=localStorage.getItem('jo11kid')}catch(_){}
 function tags(e,k){
   const t=[];
   if(e.type==='keepers')return (e.kids||[]).includes(k)?[['keepers','Keeperstraining']]:[];
+  if(e.type==='elders')return (e.kids||[]).includes(k)?[['zaalteam','Speelt met '+e.team]]:[];
   const el=(DATA.elders||{})[k];if(el&&e.type.startsWith('zaal'))return[['elders',el]];
   if(e.keeper===k)t.push(['keeper','Keeper']);
   if(e.captain===k)t.push(['captain','Captain']);
@@ -187,6 +188,9 @@ function tags(e,k){
   if(isMatch(e)&&!t.some(x=>x[0]==='rust'||x[0]==='afwezig'))t.unshift(['speelt','Speelt']);
   return t;
 }
+/* keeperstraining en wedstrijden van een ander team: alleen tonen voor wie het geldt */
+const forMe=x=>(x.type!=='keepers'&&x.type!=='elders')||(!!kid&&(x.kids||[]).includes(kid));
+const waarHtml=w=>w?`<a href="${maps(w)}">${esc(w)}</a>`:'<span class="tbd">hal volgt</span>';
 const pills=t=>t.map(([c,l])=>`<span class="pill p-${c}">${esc(l)}</span>`).join('');
 
 /* agenda: start = verzamelen (of 15 min voor training), eind = laatste tijd + duur */
@@ -224,18 +228,18 @@ function roleGrid(e){
   if(e.fruit)r.push(['Fruit / keepersmaatje',esc(e.fruit)]);
   if(e.rust)r.push(['Rust',esc(names(e.rust))]);
   if(e.afwezig)r.push(['Afwezig',esc(names(e.afwezig))]);
-  if(e.kids)r.push(['Keepers',esc(names(e.kids))]);
-  if(e.type!=='keepers')r.push(['Rijden',rijText(e)]);
+  if(e.kids)r.push([e.type==='elders'?'Van JO11-1':'Keepers',esc(names(e.kids))]);
+  if(e.type!=='keepers'&&e.type!=='elders')r.push(['Rijden',rijText(e)]);
   return `<div class="roles">${r.map(([b,s])=>`<div class="role"><b>${b}</b><span>${s}</span></div>`).join('')}</div>`+(e.dienst?`<p class="note">${esc(e.dienst)}</p>`:'');
 }
 
 function renderNext(){
-  const e=EV.find(x=>!isPast(x)&&(x.type!=='keepers'||(kid&&(x.kids||[]).includes(kid))));
+  const e=EV.find(x=>!isPast(x)&&forMe(x));
   if(!e){$('next').innerHTML='<div class="next"><div class="nb">Het seizoen zit erop. Tot het volgende!</div></div>';return}
   const f=fmt(e),i=EV.indexOf(e);
   $('next').innerHTML=`<article class="next"><div class="date"><span class="wd">${f.wd}</span><span class="dn">${f.dn}</span><span class="mo">${f.mo}</span></div>
   <div class="nb"><div class="when">${e.d===todayStr?'Vandaag':'Eerstvolgend'}</div><h3>${esc(e.wat)}</h3>
-  <dl class="meta"><dt>Tijd</dt><dd>${esc(e.tijd)}</dd><dt>Waar</dt><dd><a href="${maps(e.waar)}">${esc(e.waar)}</a></dd></dl>
+  <dl class="meta"><dt>Tijd</dt><dd>${esc(e.tijd)}</dd><dt>Waar</dt><dd>${waarHtml(e.waar)}</dd></dl>
   ${kid?`<div>${pills(tags(e,kid))}</div>`:''}${roleGrid(e)}
   <div class="btns"><a class="btn" href="${gcal(e,kid)}">Zet in Google Agenda</a>${downloads?`<button class="btn" data-ics="${i}">Agendabestand (iPhone/Outlook)</button>`:''}</div></div></article>`;
 }
@@ -245,7 +249,7 @@ function renderKids(){
   if(!kid){$('mine').innerHTML='<p class="empty">Kies hierboven je kind, dan zie je al zijn taken voor het hele seizoen.</p>';return}
   const up=EV.filter(e=>!isPast(e)),all=EV;
   const cnt=c=>all.filter(e=>tags(e,kid).some(t=>t[0]===c)).length;
-  const withTask=up.filter(e=>tags(e,kid).some(t=>['keeper','keepers','captain','fruit','rijden','rust','afwezig'].includes(t[0])));
+  const withTask=up.filter(e=>tags(e,kid).some(t=>['keeper','keepers','zaalteam','captain','fruit','rijden','rust','afwezig'].includes(t[0])));
   $('mine').innerHTML=`<div class="sum"><div><span class="big">${cnt('keeper')}</span><small>keeper</small></div><div><span class="big">${cnt('captain')}</span><small>captain</small></div><div><span class="big">${cnt('fruit')}</span><small>fruit</small></div><div><span class="big">${cnt('rijden')}</span><small>rijbeurten</small></div><div><span class="big">${cnt('rust')}</span><small>rust</small></div>${cnt('keepers')?`<div><span class="big">${cnt('keepers')}</span><small>keeperstraining</small></div>`:''}</div>
   <p class="note">Hele seizoen geteld. Rijbeurten na 6 dec volgen nog.</p>
   <h3 style="font-size:22px;margin:18px 0 4px">Komende taken van ${esc(kid)}</h3>
@@ -254,9 +258,9 @@ function renderKids(){
 }
 
 function renderAll(){
-  const sp=$('showPast').checked,list=EV.filter(e=>sp||!isPast(e));
+  const sp=$('showPast').checked,list=EV.filter(e=>(sp||!isPast(e))&&(e.type!=='elders'||forMe(e)));
   $('all').innerHTML=list.map(e=>{const f=fmt(e);return`<li class="ev${isPast(e)?' past':''}"><div class="d">${f.dn} ${f.mo}<small>${f.wd}</small></div><div>
-    <div class="t"><i class="kind k-${e.type}"></i>${esc(e.wat)}</div><div class="w">${esc(e.tijd)} · <a href="${maps(e.waar)}">${esc(e.waar)}</a></div>
+    <div class="t"><i class="kind k-${e.type}"></i>${esc(e.wat)}</div><div class="w">${esc(e.tijd)} · ${waarHtml(e.waar)}</div>
     ${kid?`<div>${pills(tags(e,kid))}</div>`:''}
     <details><summary>Wie doet wat</summary>${roleGrid(e)}<div class="btns"><a class="btn" href="${gcal(e,kid)}">Google Agenda</a></div></details></div></li>`}).join('');
 }

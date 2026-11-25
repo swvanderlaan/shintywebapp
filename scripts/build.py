@@ -46,7 +46,7 @@ SOFTWARE.
 """
 
 VERSION_NAME = "Shinty WebApp Builder"
-VERSION = "1.1.0"
+VERSION = "1.2.0"
 VERSION_DATE = "2026-11-25"
 
 import argparse
@@ -117,7 +117,7 @@ def validate(data: dict) -> list:
             if not e.get(f):
                 raise ValueError(f"{where}: veld '{f}' ontbreekt")
         dt.date.fromisoformat(e["d"])  # ongeldige datum -> ValueError
-        if e["type"] not in ("training", "veld", "zaal", "zaalleiding", "keepers"):
+        if e["type"] not in ("training", "veld", "zaal", "zaalleiding", "keepers", "elders"):
             raise ValueError(f"{where}: onbekend type '{e['type']}'")
         # alle genoemde namen moeten in de teamlijst staan
         named = [e.get("keeper"), e.get("captain"), e.get("fruit")]
@@ -183,6 +183,8 @@ def build_ics(data: dict, team_name: str) -> str:
            "X-WR-TIMEZONE:Europe/Amsterdam", "REFRESH-INTERVAL;VALUE=DURATION:PT6H",
            "X-PUBLISHED-TTL:PT6H"]
     for e in data["events"]:
+        if e["type"] == "elders":   # wedstrijden van een ander team horen niet in de teamagenda
+            continue
         s, en = span(e)
         title = re.sub(r"^(Veld|Zaal[^:]*): ", "", e["wat"])
         desc = [f"Tijd: {e['tijd']}"]

@@ -9,7 +9,7 @@
  * Installatie: zie README.md, sectie "Back-end installeren".
  *
  * VERSION_NAME = "Shinty WebApp Back-end"
- * VERSION      = "1.0.0"
+ * VERSION      = "1.1.0"
  * VERSION_DATE = "2026-11-25"
  *
  * MIT License
@@ -34,7 +34,7 @@
  * SOFTWARE.
  */
 
-const VERSION = '1.0.0';
+const VERSION = '1.1.0';
 const TZ = 'Europe/Amsterdam';
 const GITHUB_REPO = 'swvanderlaan/shintywebapp';
 const GITHUB_WORKFLOW = 'build.yml';
@@ -430,6 +430,11 @@ function exportTeam_(req) {
     if (t.team) rows = rows.filter(r => r[t.team] === team);
     out.tables[name] = rows;
   });
+  // Wedstrijden van teams waar spelers van dit team (ook) spelen, bv. een ander zaalteam
+  const elders = (out.tables.spelers || []).map(sp => sp.elders).filter(String);
+  const W = TABLES.wedstrijden;
+  out.tables.eldersWedstrijden = readTable_(sheetFor_(W, team), W.cols, W.types)
+    .map(r => r.v).filter(r => elders.indexOf(r.team) >= 0);
   return out;
 }
 
