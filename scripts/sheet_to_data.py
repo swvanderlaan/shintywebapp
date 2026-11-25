@@ -44,7 +44,7 @@ SOFTWARE.
 """
 
 VERSION_NAME = "Shinty WebApp Sheet-to-data"
-VERSION = "1.1.0"
+VERSION = "1.2.0"
 VERSION_DATE = "2026-11-25"
 
 import argparse
@@ -82,6 +82,32 @@ def setup_logging(inp: Path) -> Path:
 def names(text: str) -> list:
     """'A, B , C' -> ['A', 'B', 'C']"""
     return [n.strip() for n in (text or "").split(",") if n.strip()]
+
+
+def parse_rides(text: str):
+    """Rijschema uit een cel halen.
+
+    Vormen: 'volgt', 'eigen gelegenheid', of per regel 'Bestuurder → meerijder, meerijder + coaches X'.
+    Oude vorm zonder pijl ('A, B, C') betekent: ouders van A, B en C rijden.
+    Geeft 'volgt', 'eigen' of een lijst {van, mee, extra}.
+    """
+    t = (text or "").strip()
+    low = t.lower()
+    if low in ("", "volgt") or low.startswith("volgt"):
+        return "volgt"
+    if low.startswith("eigen gelegenheid"):
+        return "eigen"
+    lines = [x.strip() for x in t.replace(";", "\n").splitlines() if x.strip()]
+    if not any("→" in x or "->" in x for x in lines):
+        return [{"van": n, "mee": [], "extra": ""} for n in names(",".join(lines))]
+    rides = []
+    for line in lines:
+        van, _, rest = line.replace("->", "→").partition("→")
+        mee_txt, _, extra = rest.partition(" + ")
+        if mee_txt.strip().startswith("+"):   # 'A → + coach X'
+            mee_txt, extra = "", mee_txt.strip()[1:]
+        rides.append({"van": van.strip(), "mee": names(mee_txt), "extra": extra.strip()})
+    return rides
 
 
 def hall_text(code: str, hallen: dict) -> str:
@@ -189,8 +215,7 @@ def attach_tasks(events: list, taken: list) -> int:
         for f in ("rust", "afwezig"):
             if names(t.get(f)):
                 e[f] = names(t[f])
-        rij = (t.get("rijden") or "").strip()
-        e["rijden"] = "volgt" if rij in ("", "volgt") else ("eigen" if rij == "eigen gelegenheid" else names(rij))
+        e["rijden"] = parse_rides(t.get("rijden"))
         if t.get("rijdenOpm"):
             e["rijNote"] = t["rijdenOpm"]
         notes = [x for x in (t.get("zaaldienst"), t.get("opmerking")) if x]

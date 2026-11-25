@@ -53,6 +53,13 @@ td textarea{min-width:200px;resize:vertical;min-height:38px}
 td input[type=time]{min-width:92px}td select[data-k=hal]{min-width:170px}td select[data-k=keeper],td select[data-k=captain],td select[data-k=fruit]{min-width:110px}td input[type=date]{min-width:132px}
 td.acts{white-space:nowrap;width:1%}
 .multi{display:block;width:100%;min-width:130px;text-align:left;border:1px dashed var(--line);background:transparent;border-radius:6px;padding:7px 8px;min-height:38px;cursor:pointer}
+.multi.rides{white-space:pre-line;min-width:240px}
+.car{border:1px solid var(--line);border-radius:10px;padding:10px;margin:8px 0}
+.car .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px}
+.car select,.car input{border:1px solid var(--line);border-radius:8px;padding:6px 8px;min-height:40px;background:var(--bg)}
+.car input{flex:1}
+.chip.taken{opacity:.45}
+.hint{color:var(--soft);font-size:14px;margin:8px 0 0}
 .multi:disabled{cursor:default;border-style:solid;border-color:transparent}
 .msg{color:var(--red);font-size:14px;padding:2px 8px 8px}
 .ro td input,.ro td select,.ro td textarea{pointer-events:none}
@@ -145,7 +152,7 @@ const TABLES = {
   wedstrijden: {label: 'Wedstrijden', help: 'Uit MatchCenter of LISA. Zaalleiding ja: het team levert zaaldienst en fluiters.',
     fields: [['datum','Datum','date'],['soort','Soort','select','veldzaal'],['wedstrijd','Wedstrijd(en)','text'],['tijd','Tijd(en)','text'],['hal','Hal','select','hallen'],['verzamelen','Verzamelen','text'],['zaalleiding','Zaalleiding','select','janee'],['opmerking','Opmerking','text']]},
   taken: {label: 'Taken', help: 'Wie keept, is captain, neemt fruit mee, rust of rijdt. Tik op een vak met meerdere namen om ze aan te klikken.',
-    fields: [['datum','Datum','date'],['activiteit','Activiteit','text'],['keeper','Keeper','select','spelers'],['captain','Captain','select','spelers'],['fruit','Fruit','select','spelers'],['rust','Rust','multi'],['afwezig','Afwezig','multi'],['rijden','Rijden','multi','rijden'],['rijdenOpm','Rijden opmerking','text'],['zaaldienst','Zaaldienst','textarea'],['opmerking','Opmerking','text']]},
+    fields: [['datum','Datum','date'],['activiteit','Activiteit','text'],['keeper','Keeper','select','spelers'],['captain','Captain','select','spelers'],['fruit','Fruit','select','spelers'],['rust','Rust','multi'],['afwezig','Afwezig','multi'],['rijden','Rijschema','rides'],['rijdenOpm','Rijden opmerking','text'],['zaaldienst','Zaaldienst','textarea'],['opmerking','Opmerking','text']]},
   keepers: {label: 'Keeperstraining', help: 'Eén regel per groep per datum. Welke keeper in welke groep zit, staat bij Spelers.',
     fields: [['datum','Datum','date'],['groep','Groep','select','groepen'],['begin','Begin','time'],['eind','Eind','time'],['hal','Hal','select','hallen'],['trainers','Trainers','text'],['opmerking','Opmerking','text']]},
   spelers: {label: 'Spelers', help: 'De teamlijst. Alleen deze namen kunnen bij de taken staan.',
@@ -252,6 +259,7 @@ function cell(r, i, f) {
     return `<select ${attrs}><option value=""></option>${known ? '' : `<option selected>${esc(val)}</option>`}${opts.map(([v, t]) => `<option value="${esc(v)}"${v === val ? ' selected' : ''}>${esc(t)}</option>`).join('')}</select>`;
   }
   if (type === 'multi') return `<button type="button" class="multi" ${attrs}>${val ? esc(val) : '<span style="color:var(--soft)">kies…</span>'}</button>`;
+  if (type === 'rides') return `<button type="button" class="multi rides" data-rides="1" ${attrs}>${val ? esc(val) : '<span style="color:var(--soft)">indelen…</span>'}</button>`;
   if (type === 'textarea') return `<textarea rows="1" ${attrs}>${esc(val)}</textarea>`;
   return `<input type="${type}" value="${esc(val)}" ${attrs}>`;
 }
@@ -283,7 +291,7 @@ $('grid').addEventListener('change', ev => { if (ev.target.dataset.k && ev.targe
 function focusCell(id) { const el = $(id); if (el) el.focus(); }
 
 $('grid').addEventListener('click', async ev => {
-  const m = ev.target.closest('.multi'); if (m && !m.disabled) return pickNames(+m.dataset.i, m.dataset.k);
+  const m = ev.target.closest('.multi'); if (m && !m.disabled) return m.dataset.rides ? pickRides(+m.dataset.i) : pickNames(+m.dataset.i, m.dataset.k);
   const s = ev.target.closest('[data-save]'); if (s) return saveRow(+s.dataset.save);
   const u = ev.target.closest('[data-undo]'); if (u) { const r = S.rows[+u.dataset.undo]; r.v = Object.fromEntries(TABLES[S.tab].fields.map((f, j) => [f[0], r.orig[colIndex(f[0])] || ''])); r.dirty = false; r.msgs = []; return renderGrid(); }
   const d = ev.target.closest('[data-del]'); if (d) return deleteRow(+d.dataset.del);
@@ -359,6 +367,69 @@ function pickNames(i, key) {
   };
 }
 
+/* ------------------------------------------------------------ rijschema: per auto wie rijdt en wie meerijdt */
+function parseRides(text) {
+  const t = String(text || '').trim(), low = t.toLowerCase();
+  if (!t || low.startsWith('volgt')) return 'volgt';
+  if (low.startsWith('eigen gelegenheid')) return 'eigen';
+  const split = x => x.split(',').map(y => y.trim()).filter(Boolean);
+  const lines = t.replace(/;/g, '\n').split('\n').map(x => x.trim()).filter(Boolean);
+  if (!lines.some(x => /→|->/.test(x))) return split(lines.join(',')).map(n => ({van: n, mee: [], extra: ''}));
+  return lines.map(line => {
+    const [van, rest = ''] = line.replace('->', '→').split('→');
+    const plus = rest.indexOf('+');
+    return {van: van.trim(), mee: split(plus >= 0 ? rest.slice(0, plus) : rest), extra: plus >= 0 ? rest.slice(plus + 1).trim() : ''};
+  });
+}
+const rideLine = r => r.van + (r.mee.length || r.extra ? ' → ' : '') + r.mee.join(', ') + (r.extra ? (r.mee.length ? ' ' : '') + '+ ' + r.extra : '');
+
+function pickRides(i) {
+  const r = S.rows[i];
+  let parsed = parseRides(r.v.rijden);
+  let mode = Array.isArray(parsed) ? 'auto' : parsed;            // 'auto' | 'volgt' | 'eigen'
+  let cars = Array.isArray(parsed) ? parsed.map(c => ({van: c.van, mee: c.mee.slice(), extra: c.extra})) : [];
+  const spelers = S.data.lists.spelers;
+  const absent = (r.v.afwezig || '').split(',').map(x => x.trim()).filter(Boolean);
+  const isZaal = /^zaal/i.test(r.v.activiteit || '');
+  const elders = isZaal ? S.data.tables.spelers.rows.filter(x => x.v.elders).map(x => x.v.naam) : [];
+  const draw = () => {
+    const used = cars.flatMap(c => [c.van].concat(c.mee)).filter(Boolean);
+    const open = spelers.filter(n => !used.includes(n) && !absent.includes(n) && !elders.includes(n));
+    $('modal').innerHTML = `<div class="sheet" role="dialog" aria-modal="true" aria-label="Rijschema"><h2>Rijschema</h2>
+      <div class="chips">${[['auto','Indelen per auto'],['volgt','volgt'],['eigen','eigen gelegenheid']].map(([m, l]) => `<button class="chip" data-mode="${m}" aria-pressed="${mode === m}">${l}</button>`).join('')}</div>
+      ${mode === 'auto' ? cars.map((c, ci) => `<div class="car"><div class="row"><label>Ouders van <select data-van="${ci}"><option value=""></option>${spelers.map(n => `<option${n === c.van ? ' selected' : ''}${absent.includes(n) ? ' disabled' : ''}>${esc(n)}</option>`).join('')}</select></label>
+          <button class="btn del" data-rm="${ci}" aria-label="Auto verwijderen">Verwijder</button></div>
+          <div class="chips">${spelers.filter(n => n !== c.van && !absent.includes(n) && !elders.includes(n)).map(n => `<button class="chip${used.includes(n) && !c.mee.includes(n) ? ' taken' : ''}" data-car="${ci}" data-n="${esc(n)}" aria-pressed="${c.mee.includes(n)}">${esc(n)}</button>`).join('')}</div>
+          <div class="row" style="margin:8px 0 0"><input data-extra="${ci}" value="${esc(c.extra)}" placeholder="extra, bv. coaches Jakob en Teije" aria-label="Extra meerijders"></div></div>`).join('') +
+        `<button class="btn" data-x="add">+ Auto</button><p class="hint">${open.length ? 'Nog niet ingedeeld: ' + esc(open.join(', ')) : 'Iedereen is ingedeeld.'}${absent.length ? ' · Afwezig: ' + esc(absent.join(', ')) : ''}${elders.length ? ' · Speelt elders: ' + esc(elders.join(', ')) : ''}</p>` : ''}
+      <div class="btns"><button class="btn" data-x="cancel">Annuleren</button><button class="btn pri" data-x="ok">Klaar</button></div></div>`;
+  };
+  if (mode === 'auto' && !cars.length) cars.push({van: '', mee: [], extra: ''});
+  draw(); $('modal').hidden = false;
+  $('modal').oninput = ev => { const x = ev.target; if (x.dataset.extra !== undefined) cars[+x.dataset.extra].extra = x.value; };
+  $('modal').onchange = ev => { const x = ev.target; if (x.dataset.van !== undefined) { const c = cars[+x.dataset.van]; c.van = x.value; c.mee = c.mee.filter(n => n !== x.value); cars.forEach((o, oi) => { if (oi !== +x.dataset.van) o.mee = o.mee.filter(n => n !== x.value); }); draw(); } };
+  $('modal').onclick = ev => {
+    const md = ev.target.closest('[data-mode]'); if (md) { mode = md.dataset.mode; if (mode === 'auto' && !cars.length) cars.push({van: '', mee: [], extra: ''}); return draw(); }
+    const ch = ev.target.closest('[data-car]');
+    if (ch) {
+      const c = cars[+ch.dataset.car], n = ch.dataset.n;
+      if (c.mee.includes(n)) c.mee = c.mee.filter(x => x !== n);
+      else { cars.forEach(o => { o.mee = o.mee.filter(x => x !== n); if (o.van === n) o.van = ''; }); c.mee.push(n); }
+      return draw();
+    }
+    const rm = ev.target.closest('[data-rm]'); if (rm) { cars.splice(+rm.dataset.rm, 1); return draw(); }
+    const x = ev.target.closest('[data-x]');
+    if (x && x.dataset.x === 'add') { cars.push({van: '', mee: [], extra: ''}); return draw(); }
+    if ((x && x.dataset.x === 'cancel') || ev.target === $('modal')) { $('modal').hidden = true; $('modal').oninput = $('modal').onchange = null; return; }
+    if (x && x.dataset.x === 'ok') {
+      const val = mode === 'volgt' ? 'volgt' : mode === 'eigen' ? 'eigen gelegenheid' : cars.filter(c => c.van).map(rideLine).join('\n');
+      $('modal').hidden = true; $('modal').oninput = $('modal').onchange = null;
+      if (val !== (r.v.rijden || '')) { r.v.rijden = val; r.dirty = true; }
+      renderGrid();
+    }
+  };
+}
+
 /* eigen bevestigingsvenster (geen confirm()) */
 function ask(text) {
   return new Promise(res => {
@@ -381,7 +452,8 @@ function clientChecks(t, v) {
   if (t === 'uitz') { if (!v.datum) e.push('Vul een datum in.'); if (v.soort !== 'vervalt') { times(); if (!v.hal) e.push('Kies een hal.'); } }
   if (t === 'keepers') { if (!v.datum) e.push('Vul een datum in.'); if (!v.groep) e.push('Kies een groep.'); times(); }
   if (t === 'wedstrijden') { if (!v.datum) e.push('Vul een datum in.'); if (!v.wedstrijd) e.push('Vul de wedstrijd(en) in.'); if (!v.hal) e.push('Kies een hal.'); }
-  if (t === 'taken') { const off = names(v.rust).concat(names(v.afwezig)); ['keeper','captain'].forEach(f => { if (v[f] && off.includes(v[f])) e.push(`${v[f]} is ${f} maar ook rust/afwezig.`); }); if (!v.datum) e.push('Vul een datum in.'); }
+  if (t === 'taken') { const rr = parseRides(v.rijden); if (Array.isArray(rr)) { const seen = rr.flatMap(c => [c.van].concat(c.mee)); [...new Set(seen.filter((n, j) => seen.indexOf(n) !== j))].forEach(n => e.push(`${n} staat dubbel in het rijschema.`)); names(v.afwezig).filter(n => seen.includes(n)).forEach(n => e.push(`${n} is afwezig maar staat in het rijschema.`)); }
+    const off = names(v.rust).concat(names(v.afwezig)); ['keeper','captain'].forEach(f => { if (v[f] && off.includes(v[f])) e.push(`${v[f]} is ${f} maar ook rust/afwezig.`); }); if (!v.datum) e.push('Vul een datum in.'); }
   return e;
 }
 
@@ -421,7 +493,7 @@ function demoDB() {
     rooster: [row({team:'DEMO-1',dag:'di',begin:'17:00',eind:'18:00',hal:'Dome 2',trainers:'Trainer X',vanaf:'2026-12-08',tm:'2027-01-26',opmerking:''})],
     uitz: [row({datum:'2026-12-22',team:'DEMO-1',soort:'vervalt',begin:'',eind:'',hal:'',trainers:'',opmerking:'Kerstvakantie'}),row({datum:'2026-12-29',team:'DEMO-1',soort:'vervalt',begin:'',eind:'',hal:'',trainers:'',opmerking:'Kerstvakantie'}),row({datum:'2026-12-18',team:'DEMO-1',soort:'extra',begin:'16:00',eind:'17:00',hal:'Twee Marken',trainers:'Trainer X',opmerking:''})],
     wedstrijden: [row({datum:'2026-12-05',team:'DEMO-1',soort:'zaal',wedstrijd:'Shinty – Club Y',tijd:'10:10',hal:'Twee Marken',verzamelen:'09:25 Planet Happy',zaalleiding:'nee',opmerking:''})],
-    taken: [row({datum:'2026-12-05',activiteit:'Zaal: Shinty – Club Y',keeper:'Speler A',captain:'Speler B',fruit:'Speler C',rust:'Speler D',afwezig:'',rijden:'Speler E, Speler F',rijdenOpm:'',zaaldienst:'',opmerking:''})],
+    taken: [row({datum:'2026-12-05',activiteit:'Zaal: Shinty – Club Y',keeper:'Speler A',captain:'Speler B',fruit:'Speler C',rust:'Speler D',afwezig:'',rijden:'Speler E → Speler A, Speler B + coach Z\nSpeler F → Speler C',rijdenOpm:'',zaaldienst:'',opmerking:''})],
     keepers: [row({datum:'2026-12-01',groep:'Keepers 1',begin:'16:30',eind:'17:15',hal:'Hoenderdaal halve zaal',trainers:'Trainer K',opmerking:''})],
     spelers: sp.map((s, i) => row({naam:s,keeper:i === 0 ? 'ja' : 'nee',groep:i === 0 ? 'Keepers 1' : '',elders:'',opmerking:''})),
     info: [row({kop:'Verzamelen',tekst:'Bij uitwedstrijden verzamelen we bij het clubhuis.'})]

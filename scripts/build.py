@@ -46,7 +46,7 @@ SOFTWARE.
 """
 
 VERSION_NAME = "Shinty WebApp Builder"
-VERSION = "1.2.0"
+VERSION = "1.3.0"
 VERSION_DATE = "2026-11-25"
 
 import argparse
@@ -122,7 +122,8 @@ def validate(data: dict) -> list:
         # alle genoemde namen moeten in de teamlijst staan
         named = [e.get("keeper"), e.get("captain"), e.get("fruit")]
         named += e.get("rust", []) + e.get("afwezig", [])
-        named += e["rijden"] if isinstance(e.get("rijden"), list) else []
+        for r in e["rijden"] if isinstance(e.get("rijden"), list) else []:
+            named += [r] if isinstance(r, str) else [r["van"]] + r.get("mee", [])
         named += e.get("kids", [])
         for n in filter(None, named):
             if n not in kids:
@@ -132,10 +133,15 @@ def validate(data: dict) -> list:
         for role in ("keeper", "captain", "fruit"):
             if e.get(role) in off:
                 warnings.append(f"{where}: {e[role]} is {role} maar ook rust/afwezig")
-        # rijders die zelf niet spelen (afwezig) is waarschijnlijk een vergissing
+        # rijschema: niemand dubbel ingedeeld, niemand die afwezig is
         if isinstance(e.get("rijden"), list):
-            for n in set(e["rijden"]) & set(e.get("afwezig", [])):
-                warnings.append(f"{where}: ouders van {n} rijden, maar {n} is afwezig")
+            seen = []
+            for r in e["rijden"]:
+                seen += [r] if isinstance(r, str) else [r["van"]] + r.get("mee", [])
+            for n in {x for x in seen if seen.count(x) > 1}:
+                warnings.append(f"{where}: {n} staat dubbel in het rijschema")
+            for n in set(seen) & set(e.get("afwezig", [])):
+                warnings.append(f"{where}: {n} staat in het rijschema maar is afwezig")
     return warnings
 
 
@@ -230,8 +236,9 @@ def main(argv=None) -> int:
     out_html = Path(args.outdir) / args.team / "index.html"
     out_ics = Path(args.outdir) / "agenda" / f"{team['feed_token']}.ics"
     stable = {k: v for k, v in data.items() if k != "updated"}
-    digest = hmac.new(norm_pw(password), json.dumps(stable, sort_keys=True, ensure_ascii=False).encode("utf-8"),
-                      hashlib.sha256).hexdigest()[:32]
+    # ook het sjabloon telt mee: een nieuwe app-versie moet ook gepubliceerd worden
+    fingerprint = json.dumps(stable, sort_keys=True, ensure_ascii=False) + Path(args.template).read_text(encoding="utf-8")
+    digest = hmac.new(norm_pw(password), fingerprint.encode("utf-8"), hashlib.sha256).hexdigest()[:32]
     unchanged = out_html.exists() and out_ics.exists() and f'content="{digest}"' in out_html.read_text(encoding="utf-8")
     if unchanged:
         log.info("Gegevens ongewijzigd: %s niet opnieuw geschreven", out_html.relative_to(ROOT))

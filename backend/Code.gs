@@ -9,7 +9,7 @@
  * Installatie: zie README.md, sectie "Back-end installeren".
  *
  * VERSION_NAME = "Shinty WebApp Back-end"
- * VERSION      = "1.1.0"
+ * VERSION      = "1.2.0"
  * VERSION_DATE = "2026-11-25"
  *
  * MIT License
@@ -34,7 +34,7 @@
  * SOFTWARE.
  */
 
-const VERSION = '1.1.0';
+const VERSION = '1.2.0';
 const TZ = 'Europe/Amsterdam';
 const GITHUB_REPO = 'swvanderlaan/shintywebapp';
 const GITHUB_WORKFLOW = 'build.yml';
@@ -387,8 +387,15 @@ function validate_(table, v, lists) {
     const known = n => lists.spelers.indexOf(n) >= 0;
     ['keeper', 'captain', 'fruit'].forEach(f => { if (v[f] && !known(v[f])) e.push(f + ': "' + v[f] + '" staat niet in de spelerslijst.'); });
     ['rust', 'afwezig'].forEach(f => names(v[f]).forEach(n => { if (!known(n)) e.push(f + ': "' + n + '" staat niet in de spelerslijst.'); }));
-    if (['volgt', 'eigen gelegenheid', ''].indexOf(v.rijden) < 0) {
-      names(v.rijden).forEach(n => { if (!known(n)) e.push('rijden: "' + n + '" staat niet in de spelerslijst.'); });
+    const rides = parseRides_(v.rijden);
+    if (Array.isArray(rides)) {
+      const seen = [];
+      rides.forEach(r => [r.van].concat(r.mee).forEach(n => {
+        if (!known(n)) e.push('rijden: "' + n + '" staat niet in de spelerslijst.');
+        else if (seen.indexOf(n) >= 0) e.push('rijden: ' + n + ' staat dubbel in het rijschema.');
+        seen.push(n);
+      }));
+      names(v.afwezig).forEach(n => { if (seen.indexOf(n) >= 0) e.push('rijden: ' + n + ' is afwezig maar staat in het rijschema.'); });
     }
     const off = names(v.rust).concat(names(v.afwezig));
     ['keeper', 'captain'].forEach(f => { if (v[f] && off.indexOf(v[f]) >= 0) e.push(v[f] + ' is ' + f + ' maar ook rust/afwezig.'); });
@@ -396,6 +403,26 @@ function validate_(table, v, lists) {
   if (table === 'spelers' && !v.naam) e.push('Vul een naam in.');
   if (table === 'info' && !v.kop) e.push('Vul een kop in.');
   return e;
+}
+
+/**
+ * Rijschema uit een cel: 'volgt', 'eigen' of een lijst {van, mee, extra}.
+ * Per regel 'Bestuurder → meerijder, meerijder + coaches X'. Zonder pijl: 'A, B' = ouders van A en B rijden.
+ */
+function parseRides_(text) {
+  const t = String(text || '').trim(), low = t.toLowerCase();
+  if (!t || low.indexOf('volgt') === 0) return 'volgt';
+  if (low.indexOf('eigen gelegenheid') === 0) return 'eigen';
+  const split = x => x.split(',').map(y => y.trim()).filter(String);
+  const lines = t.replace(/;/g, '\n').split('\n').map(x => x.trim()).filter(String);
+  if (!lines.some(x => /→|->/.test(x))) return split(lines.join(',')).map(n => ({ van: n, mee: [], extra: '' }));
+  return lines.map(line => {
+    const parts = line.replace('->', '→').split('→');
+    const rest = (parts[1] || '').trim();
+    const plus = rest.indexOf('+');
+    const meeTxt = plus >= 0 ? rest.slice(0, plus) : rest;
+    return { van: parts[0].trim(), mee: split(meeTxt), extra: plus >= 0 ? rest.slice(plus + 1).trim() : '' };
+  });
 }
 
 function summary_(v) {

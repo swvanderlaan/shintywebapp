@@ -47,7 +47,7 @@ a{color:inherit}
 .tbd{color:var(--soft);font-style:italic;font-weight:500}
 .pill{display:inline-block;font-size:13px;font-weight:600;padding:2px 9px;border-radius:99px;background:var(--card);margin:2px 4px 2px 0;white-space:nowrap}
 .p-keeper{background:var(--ball);color:#fff}.p-captain{background:var(--turf);color:#fff}.p-fruit{background:#ffe08a;color:#4a3500}
-.p-rijden{background:light-dark(#e3e7e4,#2a3a32);color:var(--ink)}.p-rust,.p-afwezig{background:light-dark(#fff1d6,#3a2a05);color:var(--rest)}.p-speelt{color:var(--ok)}
+.p-rijden{background:light-dark(#e3e7e4,#2a3a32);color:var(--ink)}.p-rust,.p-afwezig{background:light-dark(#fff1d6,#3a2a05);color:var(--rest)}.p-speelt{color:var(--ok)}.p-mee{background:light-dark(#eef1ef,#1d2c25);color:var(--ink);border:1px dashed var(--soft)}.car{padding:1px 0}.role.wide{grid-column:1/-1}
 .p-elders{color:var(--soft)}.p-zaalteam{background:light-dark(#dff1e6,#163a27);color:light-dark(#0f5a32,#8fd3aa);border:1px solid currentColor}.p-keepers{background:light-dark(#ffe1e1,#4a1416);color:light-dark(#8a1418,#ffb3b5)}
 .chips{display:flex;flex-wrap:wrap;gap:8px}
 .chip{font:600 16px Barlow,sans-serif;min-height:44px;padding:8px 16px;border-radius:99px;border:2px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
@@ -170,7 +170,10 @@ const fmt=e=>{const x=dt(e.d);return{wd:WD[x.getDay()],dn:x.getDate(),mo:MO[x.ge
 const isMatch=e=>['veld','zaal','zaalleiding'].includes(e.type);
 const maps=w=>'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(w);
 const names=a=>Array.isArray(a)?a.join(', '):'';
-const rijText=e=>e.rijden==='volgt'?'<span class="tbd">volgt</span>':e.rijden==='eigen'?'Eigen gelegenheid':'Ouders van '+esc(names(e.rijden))+(e.rijNote?` <span class="tbd">(${esc(e.rijNote)})</span>`:'');
+/* rijschema: 'volgt', 'eigen' of lijst auto's {van, mee, extra} (oude vorm: lijst namen) */
+const rides=e=>Array.isArray(e.rijden)?e.rijden.map(r=>typeof r==='string'?{van:r,mee:[],extra:''}:r):[];
+const note=e=>e.rijNote?` <span class="tbd">(${esc(e.rijNote)})</span>`:'';
+const rijText=e=>e.rijden==='volgt'||!e.rijden?'<span class="tbd">volgt</span>'+note(e):e.rijden==='eigen'?'Eigen gelegenheid'+note(e):rides(e).map(r=>`<div class="car">Ouders van <strong>${esc(r.van)}</strong>${r.mee.length||r.extra?' → ':''}${esc(r.mee.join(', '))}${r.extra?`${r.mee.length?' ':''}+ ${esc(r.extra)}`:''}</div>`).join('')+note(e);
 let kid=null;try{kid=localStorage.getItem('jo11kid')}catch(_){}
 
 /* taken van één kind op één activiteit */
@@ -182,7 +185,7 @@ function tags(e,k){
   if(e.keeper===k)t.push(['keeper','Keeper']);
   if(e.captain===k)t.push(['captain','Captain']);
   if(e.fruit===k)t.push(['fruit','Fruit / keepersmaatje']);
-  if(Array.isArray(e.rijden)&&e.rijden.includes(k))t.push(['rijden','Ouders rijden']);
+  rides(e).forEach(r=>{if(r.van===k)t.push(['rijden','Ouders rijden'+(r.mee.length?' ('+r.mee.length+' mee)':'')]);else if(r.mee.includes(k))t.push(['mee','Rijdt mee met '+r.van]);});
   if((e.rust||[]).includes(k))t.push(['rust','Rust']);
   if((e.afwezig||[]).includes(k))t.push(['afwezig','Afwezig']);
   if(isMatch(e)&&!t.some(x=>x[0]==='rust'||x[0]==='afwezig'))t.unshift(['speelt','Speelt']);
@@ -230,7 +233,7 @@ function roleGrid(e){
   if(e.afwezig)r.push(['Afwezig',esc(names(e.afwezig))]);
   if(e.kids)r.push([e.type==='elders'?'Van JO11-1':'Keepers',esc(names(e.kids))]);
   if(e.type!=='keepers'&&e.type!=='elders')r.push(['Rijden',rijText(e)]);
-  return `<div class="roles">${r.map(([b,s])=>`<div class="role"><b>${b}</b><span>${s}</span></div>`).join('')}</div>`+(e.dienst?`<p class="note">${esc(e.dienst)}</p>`:'');
+  return `<div class="roles">${r.map(([b,s])=>`<div class="role${b==='Rijden'?' wide':''}"><b>${b}</b><span>${s}</span></div>`).join('')}</div>`+(e.dienst?`<p class="note">${esc(e.dienst)}</p>`:'');
 }
 
 function renderNext(){
@@ -249,9 +252,9 @@ function renderKids(){
   if(!kid){$('mine').innerHTML='<p class="empty">Kies hierboven je kind, dan zie je al zijn taken voor het hele seizoen.</p>';return}
   const up=EV.filter(e=>!isPast(e)),all=EV;
   const cnt=c=>all.filter(e=>tags(e,kid).some(t=>t[0]===c)).length;
-  const withTask=up.filter(e=>tags(e,kid).some(t=>['keeper','keepers','zaalteam','captain','fruit','rijden','rust','afwezig'].includes(t[0])));
-  $('mine').innerHTML=`<div class="sum"><div><span class="big">${cnt('keeper')}</span><small>keeper</small></div><div><span class="big">${cnt('captain')}</span><small>captain</small></div><div><span class="big">${cnt('fruit')}</span><small>fruit</small></div><div><span class="big">${cnt('rijden')}</span><small>rijbeurten</small></div><div><span class="big">${cnt('rust')}</span><small>rust</small></div>${cnt('keepers')?`<div><span class="big">${cnt('keepers')}</span><small>keeperstraining</small></div>`:''}</div>
-  <p class="note">Hele seizoen geteld. Rijbeurten na 6 dec volgen nog.</p>
+  const withTask=up.filter(e=>tags(e,kid).some(t=>['keeper','keepers','zaalteam','captain','fruit','rijden','mee','rust','afwezig'].includes(t[0])));
+  $('mine').innerHTML=`<div class="sum"><div><span class="big">${cnt('keeper')}</span><small>keeper</small></div><div><span class="big">${cnt('captain')}</span><small>captain</small></div><div><span class="big">${cnt('fruit')}</span><small>fruit</small></div><div><span class="big">${cnt('rijden')}</span><small>rijbeurten</small></div>${cnt('rust')?`<div><span class="big">${cnt('rust')}</span><small>rust</small></div>`:''}${cnt('keepers')?`<div><span class="big">${cnt('keepers')}</span><small>keeperstraining</small></div>`:''}</div>
+  <p class="note">Hele seizoen geteld.${EV.some(e=>e.rijden==='volgt'&&!isPast(e))?' Nog niet alle rijbeurten zijn ingedeeld.':''}</p>
   <h3 style="font-size:22px;margin:18px 0 4px">Komende taken van ${esc(kid)}</h3>
   ${withTask.length?`<ul class="list">${withTask.map(e=>{const f=fmt(e);return`<li class="ev"><div class="d">${f.dn} ${f.mo}<small>${f.wd}</small></div><div><div class="t">${esc(e.wat)}</div><div class="w">${esc(e.tijd)}${e.verz?' · verzamelen '+esc(e.verz):''}</div><div>${pills(tags(e,kid))}</div><div class="btns"><a class="btn" href="${gcal(e,kid)}">Google Agenda</a></div></div></li>`}).join('')}</ul>`:'<p class="empty">Nog geen taken ingepland.</p>'}
   ${downloads?`<div class="btns"><button class="btn solid" data-season="1">Hele seizoen van ${esc(kid)} in je agenda</button></div><p class="note">Een momentopname: bij wijzigingen opnieuw toevoegen.</p>`:''}`;
