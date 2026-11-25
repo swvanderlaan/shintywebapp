@@ -1,0 +1,52 @@
+# Bouwt de team-apps opnieuw uit de Google Sheets.
+# Start: door de back-end (na wijzigingen), met de hand (Actions -> Run workflow) of elke nacht.
+# Secrets: SHEET_API_URL (web-app-URL van het Apps Script), EXPORT_KEY, SHINTY_PW.
+name: App bijwerken
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 3 * * *"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: build
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Python-pakketten
+        run: pip install cryptography
+
+      - name: Gegevens ophalen, omzetten en versleutelen
+        env:
+          SHEET_API_URL: ${{ secrets.SHEET_API_URL }}
+          EXPORT_KEY: ${{ secrets.EXPORT_KEY }}
+          SHINTY_PW: ${{ secrets.SHINTY_PW }}
+        run: |
+          set -euo pipefail
+          for row in $(python3 -c "import json;print(' '.join(t['id']+'|'+t['sheet_team'] for t in json.load(open('config/teams.json'))['teams']))"); do
+            id="${row%%|*}"; team="${row#*|}"
+            # POST zonder -X: na de redirect van Google haalt curl het antwoord met GET op
+            python3 -c "import json,os,sys;print(json.dumps({'action':'export','key':os.environ['EXPORT_KEY'],'team':sys.argv[1]}))" "$team" \
+              | curl -sSfL -H 'Content-Type: text/plain' --data-binary @- "$SHEET_API_URL" -o "data/export-$id.json"
+            python3 scripts/sheet_to_data.py --input "data/export-$id.json" --output "data/$id.json"
+            python3 scripts/build.py --input "data/$id.json" --team "$id"
+          done
+
+      - name: Publiceren als er iets veranderd is
+        run: |
+          git config user.name "shinty-webapp-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs
+          if git diff --cached --quiet; then echo "Geen wijzigingen."; else git commit -m "App bijgewerkt vanuit de Sheets" && git push; fi

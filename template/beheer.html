@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Shinty – invoer trainers en teammanagers</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* VOICE: rustig werkgereedschap voor vrijwilligers, geen franje
+   IDEA: het wedstrijdformulier op de tafel in de hal: regels, vakjes, een pen
+   PICTURE: de bewerkbare tabel zelf, direct onder een smalle kop
+   COLOUR and TYPE: Shinty-groen en wit, rood alleen voor fouten en verwijderen; Barlow
+   LAYOUT: kop met team en tabbladen, daaronder de tabel; op de telefoon kaarten */
+:root{color-scheme:light dark;
+  --bg:light-dark(#f4f6f4,#07140e);--card:light-dark(#fff,#0f2219);--ink:light-dark(#10201a,#eef5f0);
+  --soft:light-dark(#5c6b63,#a8bcb0);--line:light-dark(#dfe6e1,#1d3a2b);--green:#0f5a32;--green2:light-dark(#e2efe6,#163a27);
+  --red:#c8262b;--redbg:light-dark(#fde8e8,#3a1213);--dirty:light-dark(#fff7dc,#2e2a12)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Barlow,system-ui,sans-serif;overflow-x:clip}
+h1,h2{font-family:"Barlow Condensed",Barlow,sans-serif;font-weight:800;line-height:1.05;margin:0}
+button,input,select,textarea{font:inherit;color:inherit}
+.top{background:var(--green);color:#fff;padding:14px max(4vw,14px)}
+.top .row1{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;justify-content:space-between;max-width:1240px;margin:0 auto}
+.top h1{font-size:26px}
+.top .who{font-size:15px;opacity:.9;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.top select{background:#fff;color:#10201a;border:0;border-radius:8px;padding:8px 10px;min-height:40px;font-weight:600}
+.lnk{background:transparent;border:1px solid rgba(255,255,255,.6);color:#fff;border-radius:8px;padding:6px 12px;cursor:pointer;min-height:40px}
+.demo{background:#ffd54a;color:#3a2c00;text-align:center;padding:6px 12px;font-weight:600;font-size:15px}
+main{max-width:1240px;margin:0 auto;padding:16px max(4vw,14px) 60px}
+.tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:14px}
+.tab{flex:none;border:1px solid var(--line);background:var(--card);border-radius:99px;padding:8px 16px;min-height:44px;cursor:pointer;font-weight:600}
+.tab[aria-selected=true]{background:var(--green);border-color:var(--green);color:#fff}
+.tab .n{opacity:.7;font-weight:500;margin-left:4px}
+.bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin:4px 0 12px}
+.bar p{margin:0;color:var(--soft);max-width:70ch}
+.btn{border:1px solid var(--line);background:var(--card);border-radius:8px;padding:8px 14px;min-height:40px;cursor:pointer;font-weight:600}
+.btn.pri{background:var(--green);border-color:var(--green);color:#fff}
+.btn.del{color:var(--red)}
+.btn:disabled{opacity:.45;cursor:default}
+.btn:focus-visible,.tab:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,.multi:focus-visible{outline:3px solid #f2a900;outline-offset:1px}
+.wrap{background:var(--card);border:1px solid var(--line);border-radius:12px;overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:15px}
+th{position:sticky;top:0;background:var(--green2);text-align:left;font-weight:600;padding:8px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:4px;border-bottom:1px solid var(--line);vertical-align:top}
+tr.dirty td{background:var(--dirty)}
+tr.bad td{background:var(--redbg)}
+td input,td select,td textarea{width:100%;min-width:72px;border:1px solid transparent;background:transparent;border-radius:6px;padding:6px 6px;min-height:38px}
+td input:hover,td select:hover,td textarea:hover{border-color:var(--line)}
+td textarea{min-width:200px;resize:vertical;min-height:38px}
+td input[type=time]{min-width:92px}td select[data-k=hal]{min-width:170px}td select[data-k=keeper],td select[data-k=captain],td select[data-k=fruit]{min-width:110px}td input[type=date]{min-width:132px}
+td.acts{white-space:nowrap;width:1%}
+.multi{display:block;width:100%;min-width:130px;text-align:left;border:1px dashed var(--line);background:transparent;border-radius:6px;padding:7px 8px;min-height:38px;cursor:pointer}
+.multi:disabled{cursor:default;border-style:solid;border-color:transparent}
+.msg{color:var(--red);font-size:14px;padding:2px 8px 8px}
+.ro td input,.ro td select,.ro td textarea{pointer-events:none}
+.empty{padding:18px;color:var(--soft)}
+.result{margin-top:18px}
+.result h2{font-size:22px;margin-bottom:6px}
+.result ul{list-style:none;margin:0;padding:0;columns:2 280px}
+.result li{padding:3px 0;break-inside:avoid}
+.result .x{color:var(--soft);text-decoration:line-through}
+.login{max-width:420px;margin:8vh auto;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:24px}
+.login h1{font-size:32px;color:var(--green)}
+:root[data-theme=dark] .login h1{color:#8fd3aa}
+.login label{display:block;font-weight:600;margin:14px 0 4px}
+.login input{width:100%;font-size:16px;border:1px solid var(--line);border-radius:8px;padding:10px 12px;min-height:44px;background:var(--bg)}
+.login .btn{width:100%;margin-top:16px;min-height:46px}
+.err{color:var(--red);font-weight:600;min-height:1.4em;margin:10px 0 0}
+.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:#10201a;color:#fff;padding:10px 16px;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.25);max-width:90vw;z-index:20}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.4);display:grid;place-items:center;z-index:30;padding:16px}
+.sheet{background:var(--card);border-radius:14px;padding:18px;max-width:520px;width:100%;max-height:85vh;overflow:auto}
+.sheet h2{font-size:22px;margin-bottom:10px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:2px solid var(--line);background:var(--bg);border-radius:99px;padding:6px 14px;min-height:40px;cursor:pointer;font-weight:600}
+.chip[aria-pressed=true]{background:var(--green);border-color:var(--green);color:#fff}
+.sheet .btns{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
+[hidden]{display:none!important}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+@media(max-width:760px){
+  table,thead,tbody,tr,td{display:block}thead{display:none}
+  tr{border-bottom:2px solid var(--line);padding:8px 4px}
+  td{border:0;display:grid;grid-template-columns:7.5em minmax(0,1fr);align-items:center;gap:6px;padding:3px 4px}
+  td::before{content:attr(data-l);color:var(--soft);font-size:14px}
+  td.acts{width:auto;display:flex;gap:8px;justify-content:flex-end}td.acts::before{content:none}
+  td input,td select,td textarea,.multi{border-color:var(--line)}
+}
+@media(prefers-reduced-motion:no-preference){.toast{animation:up .25s ease-out}@keyframes up{from{opacity:0;transform:translate(-50%,10px)}}}
+</style>
+</head>
+<body>
+<div id="demo" class="demo" hidden>Demomodus: verzonnen gegevens, er wordt niets opgeslagen.</div>
+
+<section id="loginView" class="login" aria-labelledby="lt">
+  <h1 id="lt">Shinty invoer</h1>
+  <p style="color:var(--soft);margin:6px 0 0">Voor trainers en teammanagers. Log in met je naam en pincode.</p>
+  <form id="loginForm">
+    <label for="lname">Naam</label>
+    <input id="lname" autocomplete="username" required>
+    <label for="lpin">Pincode</label>
+    <input id="lpin" type="password" inputmode="numeric" autocomplete="current-password" required>
+    <button class="btn pri" type="submit">Inloggen</button>
+    <p id="lerr" class="err" role="alert"></p>
+  </form>
+</section>
+
+<div id="appView" hidden>
+  <header class="top">
+    <div class="row1">
+      <h1>Shinty invoer</h1>
+      <div class="who">
+        <label for="team" class="sr">Team</label>
+        <select id="team"></select>
+        <span id="who"></span>
+        <button class="lnk" id="logout" type="button">Uitloggen</button>
+      </div>
+    </div>
+  </header>
+  <main>
+    <nav class="tabs" id="tabs" role="tablist"></nav>
+    <div class="bar"><p id="help"></p><button class="btn pri" id="add" type="button">+ Nieuwe regel</button></div>
+    <div class="wrap"><table id="grid"></table></div>
+    <section class="result" id="result" hidden></section>
+  </main>
+</div>
+<div id="modal" class="modal" hidden></div>
+<div id="toast" class="toast" role="status" hidden></div>
+
+<script>
+{
+/* ------------------------------------------------------------ instellingen */
+const API = '__API_URL__';                       // wordt gevuld door de build
+const DEMO = !/^https:/.test(API) || new URLSearchParams(location.search).has('demo');
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+/* Velden per tabel: type bepaalt de invoer, list waar een keuzelijst vandaan komt. */
+const TABLES = {
+  rooster: {label: 'Vast rooster', help: 'Eén regel per vast moment per week. Afwijkingen op één datum zet je bij Uitzonderingen.',
+    fields: [['dag','Dag','select','dagen'],['begin','Begin','time'],['eind','Eind','time'],['hal','Hal','select','hallen'],['trainers','Trainers','text'],['vanaf','Vanaf','date'],['tm','T/m','date'],['opmerking','Opmerking','text']]},
+  uitz: {label: 'Uitzonderingen', help: 'Extra training, training die vervalt, of een andere tijd of hal op één datum.',
+    fields: [['datum','Datum','date'],['soort','Soort','select','soorten'],['begin','Begin','time'],['eind','Eind','time'],['hal','Hal','select','hallen'],['trainers','Trainers','text'],['opmerking','Opmerking','text']]},
+  wedstrijden: {label: 'Wedstrijden', help: 'Uit MatchCenter of LISA. Zaalleiding ja: het team levert zaaldienst en fluiters.',
+    fields: [['datum','Datum','date'],['soort','Soort','select','veldzaal'],['wedstrijd','Wedstrijd(en)','text'],['tijd','Tijd(en)','text'],['hal','Hal','select','hallen'],['verzamelen','Verzamelen','text'],['zaalleiding','Zaalleiding','select','janee'],['opmerking','Opmerking','text']]},
+  taken: {label: 'Taken', help: 'Wie keept, is captain, neemt fruit mee, rust of rijdt. Tik op een vak met meerdere namen om ze aan te klikken.',
+    fields: [['datum','Datum','date'],['activiteit','Activiteit','text'],['keeper','Keeper','select','spelers'],['captain','Captain','select','spelers'],['fruit','Fruit','select','spelers'],['rust','Rust','multi'],['afwezig','Afwezig','multi'],['rijden','Rijden','multi','rijden'],['rijdenOpm','Rijden opmerking','text'],['zaaldienst','Zaaldienst','textarea'],['opmerking','Opmerking','text']]},
+  keepers: {label: 'Keeperstraining', help: 'Eén regel per groep per datum. Welke keeper in welke groep zit, staat bij Spelers.',
+    fields: [['datum','Datum','date'],['groep','Groep','select','groepen'],['begin','Begin','time'],['eind','Eind','time'],['hal','Hal','select','hallen'],['trainers','Trainers','text'],['opmerking','Opmerking','text']]},
+  spelers: {label: 'Spelers', help: 'De teamlijst. Alleen deze namen kunnen bij de taken staan.',
+    fields: [['naam','Naam','text'],['keeper','Keeper','select','janee'],['groep','Keepersgroep','select','groepen'],['elders','Speelt zaal elders','text'],['opmerking','Opmerking','text']]},
+  info: {label: 'Info', help: 'De blokjes "Goed om te weten" in de ouder-app.',
+    fields: [['kop','Kop','text'],['tekst','Tekst','textarea']]}
+};
+const ORDER = ['rooster','uitz','wedstrijden','taken','keepers','spelers','info'];
+
+let S = {token: null, user: null, teams: [], team: null, data: null, tab: 'rooster', rows: []};
+
+/* ------------------------------------------------------------ API (echt of demo) */
+async function api(body) {
+  if (DEMO) return demoApi(body);
+  const res = await fetch(API, {method: 'POST', headers: {'Content-Type': 'text/plain;charset=utf-8'}, body: JSON.stringify(body)});
+  if (!res.ok) throw new Error('De server reageert niet (' + res.status + ').');
+  return res.json();
+}
+
+/* ------------------------------------------------------------ inloggen */
+$('loginForm').addEventListener('submit', async ev => {
+  ev.preventDefault(); $('lerr').textContent = '';
+  try {
+    const r = await api({action: 'login', name: $('lname').value, pin: $('lpin').value});
+    if (!r.ok) { $('lerr').textContent = r.error; return; }
+    S.token = r.token; S.user = r.user; S.teams = r.teams;
+    try { sessionStorage.setItem('shintyInvoer', JSON.stringify({token: r.token, user: r.user, teams: r.teams})); } catch (_) {}
+    $('lpin').value = '';
+    await enter();
+  } catch (err) { $('lerr').textContent = err.message; }
+});
+$('logout').addEventListener('click', () => { try { sessionStorage.removeItem('shintyInvoer'); } catch (_) {} location.reload(); });
+
+async function enter() {
+  $('loginView').hidden = true; $('appView').hidden = false;
+  $('who').textContent = S.user.name + ' · ' + ({admin:'beheerder',trainer:'trainer',tm:'teammanager',keepertrainer:'keeperstrainer'}[S.user.role] || S.user.role);
+  $('team').innerHTML = S.teams.map(t => `<option>${esc(t)}</option>`).join('');
+  S.team = S.teams[0];
+  await loadTeam();
+}
+$('team').addEventListener('change', async () => {
+  if (dirtyCount() && !await ask('Er zijn niet-opgeslagen wijzigingen. Toch wisselen van team?')) { $('team').value = S.team; return; }
+  S.team = $('team').value; await loadTeam();
+});
+
+async function loadTeam() {
+  const r = await api({action: 'load', token: S.token, team: S.team});
+  if (!r.ok) { toast(r.error); if (/verlopen/.test(r.error)) setTimeout(() => $('logout').click(), 1500); return; }
+  S.data = r;
+  // standaard het eerste tabblad waar deze gebruiker iets mag aanpassen
+  if (!S.data.tables[S.tab] || !S.data.tables[S.tab].canWrite) S.tab = ORDER.find(t => S.data.tables[t].canWrite) || 'rooster';
+  openTab(S.tab);
+}
+
+/* ------------------------------------------------------------ tabbladen */
+function renderTabs() {
+  $('tabs').innerHTML = ORDER.map(t => {
+    const n = S.data.tables[t].rows.length;
+    return `<button class="tab" role="tab" aria-selected="${t === S.tab}" data-tab="${t}">${TABLES[t].label}<span class="n">${n}</span></button>`;
+  }).join('');
+}
+$('tabs').addEventListener('click', async ev => {
+  const b = ev.target.closest('[data-tab]'); if (!b) return;
+  if (dirtyCount() && !await ask('Er zijn niet-opgeslagen wijzigingen op dit tabblad. Toch wisselen?')) return;
+  openTab(b.dataset.tab);
+});
+
+function openTab(t) {
+  S.tab = t;
+  const tb = S.data.tables[t];
+  S.rows = tb.rows.map(r => ({row: r.row, orig: r.orig, v: Object.assign({}, r.v), dirty: false, msgs: []}));
+  sortRows();
+  renderTabs();
+  $('help').textContent = TABLES[t].help + (tb.canWrite ? '' : ' Je kunt dit tabblad alleen bekijken.');
+  $('add').hidden = !tb.canWrite;
+  renderGrid();
+}
+
+function sortRows() {
+  const k = r => (r.v.datum || r.v.vanaf || '') + (r.v.dag ? 'ma di wo do vr za zo'.indexOf(r.v.dag) : '') + (r.v.begin || '');
+  if (['spelers','info'].includes(S.tab)) return;
+  S.rows.sort((a, b) => (a.row ? 0 : -1) - (b.row ? 0 : -1) || k(a).localeCompare(k(b)));
+}
+
+/* ------------------------------------------------------------ tabel */
+function options(list) {
+  const L = S.data.lists;
+  if (list === 'hallen') return L.hallen.map(h => [h.hal, h.hal]);
+  if (list === 'spelers') return L.spelers.map(n => [n, n]);
+  if (list === 'dagen') return L.dagen.map(d => [d, d]);
+  if (list === 'soorten') return L.soorten.map(d => [d, d]);
+  if (list === 'groepen') return L.groepen.map(d => [d, d]);
+  if (list === 'veldzaal') return [['veld','veld'],['zaal','zaal']];
+  if (list === 'janee') return [['nee','nee'],['ja','ja']];
+  return [];
+}
+
+function cell(r, i, f) {
+  const [key, label, type, list] = f, val = r.v[key] || '', ro = !S.data.tables[S.tab].canWrite;
+  const id = `c${i}_${key}`, attrs = `id="${id}" data-i="${i}" data-k="${key}" aria-label="${esc(label)}"${ro ? ' disabled' : ''}`;
+  if (type === 'select') {
+    const opts = options(list);
+    const known = !val || opts.some(o => o[0] === val);
+    return `<select ${attrs}><option value=""></option>${known ? '' : `<option selected>${esc(val)}</option>`}${opts.map(([v, t]) => `<option value="${esc(v)}"${v === val ? ' selected' : ''}>${esc(t)}</option>`).join('')}</select>`;
+  }
+  if (type === 'multi') return `<button type="button" class="multi" ${attrs}>${val ? esc(val) : '<span style="color:var(--soft)">kies…</span>'}</button>`;
+  if (type === 'textarea') return `<textarea rows="1" ${attrs}>${esc(val)}</textarea>`;
+  return `<input type="${type}" value="${esc(val)}" ${attrs}>`;
+}
+
+function renderGrid() {
+  const fields = TABLES[S.tab].fields, canWrite = S.data.tables[S.tab].canWrite;
+  if (!S.rows.length) { $('grid').innerHTML = `<tbody><tr><td class="empty">Nog geen regels${canWrite ? '. Kies "+ Nieuwe regel".' : '.'}</td></tr></tbody>`; renderResult(); return; }
+  $('grid').className = canWrite ? '' : 'ro';
+  $('grid').innerHTML = `<thead><tr>${fields.map(f => `<th>${f[1]}</th>`).join('')}${canWrite ? '<th></th>' : ''}</tr></thead><tbody>` +
+    S.rows.map((r, i) => {
+      const warn = clientChecks(S.tab, r.v);
+      const msgs = [...new Set(r.msgs.concat(r.dirty ? warn : []))];
+      return `<tr class="${r.dirty ? 'dirty' : ''}${r.msgs.length ? ' bad' : ''}">${fields.map(f => `<td data-l="${f[1]}">${cell(r, i, f)}</td>`).join('')}` +
+        (canWrite ? `<td class="acts"><button class="btn pri" data-save="${i}" ${r.dirty ? '' : 'disabled'}>Opslaan</button> ` +
+          (r.dirty && r.row ? `<button class="btn" data-undo="${i}">Herstel</button> ` : '') +
+          `<button class="btn del" data-del="${i}" aria-label="Verwijder regel">Verwijder</button></td>` : '') + `</tr>` +
+        (msgs.length ? `<tr><td colspan="${fields.length + 1}" class="msg">${msgs.map(esc).join('<br>')}</td></tr>` : '');
+    }).join('') + '</tbody>';
+  renderResult();
+}
+
+$('grid').addEventListener('input', ev => {
+  const el = ev.target; if (!el.dataset.k) return;
+  const r = S.rows[+el.dataset.i]; r.v[el.dataset.k] = el.value;
+  if (!r.dirty) { r.dirty = true; const tr = el.closest('tr'); tr.classList.add('dirty'); tr.querySelector('[data-save]').disabled = false; }
+});
+/* alleen bij keuzelijsten direct opnieuw tekenen (controles bijwerken); bij tekstvelden niet, anders mist een klik op Opslaan */
+$('grid').addEventListener('change', ev => { if (ev.target.dataset.k && ev.target.tagName === 'SELECT') { renderGrid(); focusCell(ev.target.id); } });
+function focusCell(id) { const el = $(id); if (el) el.focus(); }
+
+$('grid').addEventListener('click', async ev => {
+  const m = ev.target.closest('.multi'); if (m && !m.disabled) return pickNames(+m.dataset.i, m.dataset.k);
+  const s = ev.target.closest('[data-save]'); if (s) return saveRow(+s.dataset.save);
+  const u = ev.target.closest('[data-undo]'); if (u) { const r = S.rows[+u.dataset.undo]; r.v = Object.fromEntries(TABLES[S.tab].fields.map((f, j) => [f[0], r.orig[colIndex(f[0])] || ''])); r.dirty = false; r.msgs = []; return renderGrid(); }
+  const d = ev.target.closest('[data-del]'); if (d) return deleteRow(+d.dataset.del);
+});
+$('add').addEventListener('click', () => {
+  const v = {}; TABLES[S.tab].fields.forEach(f => v[f[0]] = '');
+  if (S.tab === 'uitz') v.soort = 'extra';
+  S.rows.unshift({row: null, orig: null, v, dirty: true, msgs: []});
+  renderGrid(); const first = $('grid').querySelector('tbody input,tbody select'); if (first) first.focus();
+});
+
+/* kolomvolgorde zoals de back-end hem teruggeeft (orig) */
+const COLS = {rooster:['team','dag','begin','eind','hal','trainers','vanaf','tm','opmerking'],uitz:['datum','team','soort','begin','eind','hal','trainers','opmerking'],
+  wedstrijden:['datum','team','soort','wedstrijd','tijd','hal','verzamelen','zaalleiding','opmerking'],keepers:['datum','groep','begin','eind','hal','trainers','opmerking'],
+  taken:['datum','activiteit','keeper','captain','fruit','rust','afwezig','rijden','rijdenOpm','zaaldienst','opmerking'],spelers:['naam','keeper','groep','elders','opmerking'],info:['kop','tekst']};
+const colIndex = k => COLS[S.tab].indexOf(k);
+
+async function saveRow(i) {
+  const r = S.rows[i];
+  const res = await api({action: 'save', token: S.token, team: S.team, table: S.tab, row: r.row, orig: r.orig, values: r.v});
+  if (!res.ok) { r.msgs = res.errors || [res.error]; return renderGrid(); }
+  S.rows[i] = {row: res.row.row, orig: res.row.orig, v: Object.assign({}, res.row.v), dirty: false, msgs: []};
+  syncTable(); renderTabs(); renderGrid();
+  toast('Opgeslagen. De ouder-app wordt binnen ongeveer 10 minuten bijgewerkt.');
+}
+
+async function deleteRow(i) {
+  const r = S.rows[i];
+  if (!r.row) { S.rows.splice(i, 1); return renderGrid(); }
+  if (!await ask('Deze regel verwijderen?')) return;
+  const res = await api({action: 'delete', token: S.token, team: S.team, table: S.tab, row: r.row, orig: r.orig});
+  if (!res.ok) { r.msgs = [res.error]; return renderGrid(); }
+  S.rows.splice(i, 1); syncTable(); renderTabs(); renderGrid(); toast('Verwijderd.');
+}
+
+/* bewaarde regels terugschrijven in S.data, zodat wisselen van tabblad klopt */
+function syncTable() {
+  S.data.tables[S.tab].rows = S.rows.filter(r => r.row && !r.dirty).map(r => ({row: r.row, orig: r.orig, v: Object.assign({}, r.v)}));
+  if (S.tab === 'spelers') S.data.lists.spelers = S.data.tables.spelers.rows.map(r => r.v.naam).filter(Boolean);
+}
+const dirtyCount = () => S.rows.filter(r => r.dirty).length;
+
+/* ------------------------------------------------------------ namen kiezen */
+function pickNames(i, key) {
+  const r = S.rows[i];
+  const isRij = key === 'rijden';
+  let sel = (r.v[key] || '').split(',').map(s => s.trim()).filter(Boolean);
+  const specials = isRij ? ['volgt', 'eigen gelegenheid'] : [];
+  const label = TABLES[S.tab].fields.find(f => f[0] === key)[1];
+  const draw = () => {
+    $('modal').innerHTML = `<div class="sheet" role="dialog" aria-modal="true" aria-label="${esc(label)}"><h2>${esc(label)}</h2>
+      ${specials.length ? `<div class="chips" style="margin-bottom:10px">${specials.map(s => `<button class="chip" data-n="${esc(s)}" aria-pressed="${sel.includes(s)}">${esc(s)}</button>`).join('')}</div>` : ''}
+      <div class="chips">${S.data.lists.spelers.map(n => `<button class="chip" data-n="${esc(n)}" aria-pressed="${sel.includes(n)}">${esc(n)}</button>`).join('')}</div>
+      <div class="btns"><button class="btn" data-x="clear">Leegmaken</button><button class="btn pri" data-x="ok">Klaar</button></div></div>`;
+  };
+  draw(); $('modal').hidden = false;
+  $('modal').onclick = ev => {
+    const c = ev.target.closest('[data-n]');
+    if (c) {
+      const n = c.dataset.n;
+      if (specials.includes(n)) sel = sel.includes(n) ? [] : [n];
+      else { sel = sel.filter(x => !specials.includes(x)); sel = sel.includes(n) ? sel.filter(x => x !== n) : sel.concat(n); }
+      return draw();
+    }
+    const x = ev.target.closest('[data-x]');
+    if (x && x.dataset.x === 'clear') { sel = []; return draw(); }
+    if ((x && x.dataset.x === 'ok') || ev.target === $('modal')) {
+      $('modal').hidden = true;
+      const val = sel.join(', ');
+      if (val !== (r.v[key] || '')) { r.v[key] = val; r.dirty = true; }
+      renderGrid();
+    }
+  };
+}
+
+/* eigen bevestigingsvenster (geen confirm()) */
+function ask(text) {
+  return new Promise(res => {
+    $('modal').innerHTML = `<div class="sheet" role="dialog" aria-modal="true"><p style="margin:0 0 8px;font-weight:600">${esc(text)}</p>
+      <div class="btns"><button class="btn" data-a="0">Annuleren</button><button class="btn pri" data-a="1">Ja</button></div></div>`;
+    $('modal').hidden = false;
+    $('modal').onclick = ev => { const b = ev.target.closest('[data-a]'); if (b || ev.target === $('modal')) { $('modal').hidden = true; res(!!(b && b.dataset.a === '1')); } };
+  });
+}
+
+let toastTimer;
+function toast(t) { $('toast').textContent = t; $('toast').hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(() => $('toast').hidden = true, 3500); }
+
+/* ------------------------------------------------------------ controles in de browser */
+function clientChecks(t, v) {
+  const e = [], mins = s => { const p = (s || '').split(':').map(Number); return p[0] * 60 + p[1]; };
+  const times = () => { if (!v.begin || !v.eind) e.push('Vul een begin- en eindtijd in.'); else if (mins(v.eind) <= mins(v.begin)) e.push('De eindtijd moet na de begintijd liggen.'); };
+  const names = s => (s || '').split(',').map(x => x.trim()).filter(Boolean);
+  if (t === 'rooster') { if (!v.dag) e.push('Kies een dag.'); times(); if (!v.hal) e.push('Kies een hal.'); if (!v.vanaf || !v.tm) e.push('Vul de periode in.'); else if (v.tm < v.vanaf) e.push('De einddatum ligt voor de begindatum.'); }
+  if (t === 'uitz') { if (!v.datum) e.push('Vul een datum in.'); if (v.soort !== 'vervalt') { times(); if (!v.hal) e.push('Kies een hal.'); } }
+  if (t === 'keepers') { if (!v.datum) e.push('Vul een datum in.'); if (!v.groep) e.push('Kies een groep.'); times(); }
+  if (t === 'wedstrijden') { if (!v.datum) e.push('Vul een datum in.'); if (!v.wedstrijd) e.push('Vul de wedstrijd(en) in.'); if (!v.hal) e.push('Kies een hal.'); }
+  if (t === 'taken') { const off = names(v.rust).concat(names(v.afwezig)); ['keeper','captain'].forEach(f => { if (v[f] && off.includes(v[f])) e.push(`${v[f]} is ${f} maar ook rust/afwezig.`); }); if (!v.datum) e.push('Vul een datum in.'); }
+  return e;
+}
+
+/* ------------------------------------------------------------ resultaat: trainingen per datum */
+const DOW = ['zo','ma','di','wo','do','vr','za'], MON = ['jan','feb','mrt','apr','mei','jun','jul','aug','sep','okt','nov','dec'];
+const iso = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+const nice = s => { const [y, m, d] = s.split('-').map(Number); const x = new Date(y, m - 1, d); return `${DOW[x.getDay()]} ${d} ${MON[m - 1]}`; };
+function expandTrainings() {
+  const out = {};
+  S.data.tables.rooster.rows.forEach(({v}) => {
+    if (!v.vanaf || !v.tm || !v.dag) return;
+    const [y, m, d] = v.vanaf.split('-').map(Number); const x = new Date(y, m - 1, d); const end = v.tm;
+    while (iso(x) <= end) { if (DOW[x.getDay()] === v.dag) out[iso(x) + v.begin] = {d: iso(x), begin: v.begin, eind: v.eind, hal: v.hal, how: 'vast'}; x.setDate(x.getDate() + 1); }
+  });
+  S.data.tables.uitz.rows.forEach(({v}) => {
+    Object.keys(out).filter(k => k.startsWith(v.datum)).forEach(k => { if (v.soort !== 'extra') out[k].x = true; });
+    if (v.soort !== 'vervalt') out[v.datum + v.begin] = {d: v.datum, begin: v.begin, eind: v.eind, hal: v.hal, how: v.soort};
+  });
+  return Object.values(out).sort((a, b) => (a.d + a.begin).localeCompare(b.d + b.begin));
+}
+function renderResult() {
+  const show = S.tab === 'rooster' || S.tab === 'uitz';
+  $('result').hidden = !show; if (!show) return;
+  const list = expandTrainings(), n = list.filter(t => !t.x).length;
+  $('result').innerHTML = `<h2>Zo komt het in de app: ${n} training${n === 1 ? '' : 'en'}</h2><ul>` +
+    list.map(t => `<li class="${t.x ? 'x' : ''}">${esc(nice(t.d))} · ${esc(t.begin)}–${esc(t.eind)} · ${esc(t.hal)}${t.how !== 'vast' ? ` <em>(${esc(t.how)})</em>` : ''}</li>`).join('') +
+    `</ul><p style="color:var(--soft);font-size:14px">Alleen opgeslagen regels tellen mee.</p>`;
+}
+
+/* ------------------------------------------------------------ demomodus (verzonnen gegevens) */
+let DB = null;
+function demoDB() {
+  const H = [['Hoenderdaal','Sportcentrum Hoenderdaal'],['Twee Marken','De Twee Marken'],['Dome 2','Sportdome Bunnik, Dome 2'],['Hoenderdaal halve zaal','Hoenderdaal (halve zaal)']].map(([hal, naam]) => ({hal, naam}));
+  const sp = ['Speler A','Speler B','Speler C','Speler D','Speler E','Speler F'];
+  let n = 2; const row = o => ({row: n++, v: o});
+  return {hallen: H, spelers: sp, tables: {
+    rooster: [row({team:'DEMO-1',dag:'di',begin:'17:00',eind:'18:00',hal:'Dome 2',trainers:'Trainer X',vanaf:'2026-12-08',tm:'2027-01-26',opmerking:''})],
+    uitz: [row({datum:'2026-12-22',team:'DEMO-1',soort:'vervalt',begin:'',eind:'',hal:'',trainers:'',opmerking:'Kerstvakantie'}),row({datum:'2026-12-29',team:'DEMO-1',soort:'vervalt',begin:'',eind:'',hal:'',trainers:'',opmerking:'Kerstvakantie'}),row({datum:'2026-12-18',team:'DEMO-1',soort:'extra',begin:'16:00',eind:'17:00',hal:'Twee Marken',trainers:'Trainer X',opmerking:''})],
+    wedstrijden: [row({datum:'2026-12-05',team:'DEMO-1',soort:'zaal',wedstrijd:'Shinty – Club Y',tijd:'10:10',hal:'Twee Marken',verzamelen:'09:25 Planet Happy',zaalleiding:'nee',opmerking:''})],
+    taken: [row({datum:'2026-12-05',activiteit:'Zaal: Shinty – Club Y',keeper:'Speler A',captain:'Speler B',fruit:'Speler C',rust:'Speler D',afwezig:'',rijden:'Speler E, Speler F',rijdenOpm:'',zaaldienst:'',opmerking:''})],
+    keepers: [row({datum:'2026-12-01',groep:'Keepers 1',begin:'16:30',eind:'17:15',hal:'Hoenderdaal halve zaal',trainers:'Trainer K',opmerking:''})],
+    spelers: sp.map((s, i) => row({naam:s,keeper:i === 0 ? 'ja' : 'nee',groep:i === 0 ? 'Keepers 1' : '',elders:'',opmerking:''})),
+    info: [row({kop:'Verzamelen',tekst:'Bij uitwedstrijden verzamelen we bij het clubhuis.'})]
+  }};
+}
+async function demoApi(b) {
+  await new Promise(r => setTimeout(r, 150));
+  if (!DB) DB = demoDB();
+  const orig = (t, v) => COLS[t].map(c => v[c] || '');
+  if (b.action === 'login') return b.pin === '123456' ? {ok: true, token: 'demo', user: {name: b.name || 'Demo', role: 'admin', teams: ['*']}, teams: ['DEMO-1']} : {ok: false, error: 'Naam of pincode klopt niet. (Demo: pincode 123456)'};
+  if (b.action === 'load') {
+    const tables = {}; Object.keys(DB.tables).forEach(t => tables[t] = {canWrite: true, rows: DB.tables[t].map(r => ({row: r.row, v: Object.assign({}, r.v), orig: orig(t, r.v)}))});
+    return {ok: true, team: b.team, lists: {hallen: DB.hallen, spelers: DB.spelers, dagen: ['ma','di','wo','do','vr','za','zo'], soorten: ['extra','vervalt','gewijzigd'], groepen: ['Keepers 1','Keepers 2','Keepers 3']}, tables};
+  }
+  const tab = DB.tables[b.table];
+  if (b.action === 'save') {
+    const errs = clientChecks(b.table, b.values); if (errs.length) return {ok: false, errors: errs};
+    const v = Object.assign({}, b.values); if (COLS[b.table].includes('team')) v.team = 'DEMO-1';
+    let r = b.row && tab.find(x => x.row === b.row);
+    if (r) r.v = v; else { r = {row: 100 + tab.length + Math.floor(Math.random() * 900), v}; tab.push(r); }
+    if (b.table === 'spelers') DB.spelers = tab.map(x => x.v.naam);
+    return {ok: true, row: {row: r.row, v: Object.assign({}, v), orig: orig(b.table, v)}};
+  }
+  if (b.action === 'delete') { DB.tables[b.table] = tab.filter(x => x.row !== b.row); return {ok: true}; }
+  return {ok: false, error: 'Onbekende actie.'};
+}
+
+/* ------------------------------------------------------------ start */
+$('demo').hidden = !DEMO;
+if (DEMO) $('lname').placeholder = 'Demo: elke naam, pincode 123456';
+try {
+  const s = JSON.parse(sessionStorage.getItem('shintyInvoer') || 'null');
+  if (s && !DEMO) { S.token = s.token; S.user = s.user; S.teams = s.teams; enter().catch(() => {}); }
+} catch (_) {}
+}
+</script>
+</body>
+</html>

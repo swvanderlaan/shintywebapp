@@ -46,13 +46,14 @@ SOFTWARE.
 """
 
 VERSION_NAME = "Shinty WebApp Builder"
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 VERSION_DATE = "2026-11-25"
 
 import argparse
 import base64
 import datetime as dt
 import hashlib
+import hmac
 import json
 import logging
 import os
@@ -112,16 +113,17 @@ def validate(data: dict) -> list:
     warnings = []
     for i, e in enumerate(data["events"]):
         where = f"activiteit {i + 1} ({e.get('d', '?')})"
-        for f in ("d", "type", "wat", "tijd", "waar"):
+        for f in ("d", "type", "wat", "tijd"):
             if not e.get(f):
                 raise ValueError(f"{where}: veld '{f}' ontbreekt")
         dt.date.fromisoformat(e["d"])  # ongeldige datum -> ValueError
-        if e["type"] not in ("training", "veld", "zaal", "zaalleiding"):
+        if e["type"] not in ("training", "veld", "zaal", "zaalleiding", "keepers"):
             raise ValueError(f"{where}: onbekend type '{e['type']}'")
         # alle genoemde namen moeten in de teamlijst staan
         named = [e.get("keeper"), e.get("captain"), e.get("fruit")]
         named += e.get("rust", []) + e.get("afwezig", [])
         named += e["rijden"] if isinstance(e.get("rijden"), list) else []
+        named += e.get("kids", [])
         for n in filter(None, named):
             if n not in kids:
                 warnings.append(f"{where}: '{n}' staat niet in de teamlijst")
@@ -158,8 +160,8 @@ def span(e: dict):
     day = dt.date.fromisoformat(e["d"])
     ts, verz = times(e["tijd"]), times(e.get("verz", ""))
     at = lambda hm: dt.datetime.combine(day, dt.time(0, 0)) + dt.timedelta(hours=hm[0], minutes=hm[1])
-    if e["type"] == "training":
-        start = at(ts[0]) - dt.timedelta(minutes=15)
+    if e["type"] in ("training", "keepers"):
+        start = at(ts[0]) - dt.timedelta(minutes=15 if e["type"] == "training" else 0)
         end = at(ts[1]) if len(ts) > 1 else at(ts[0]) + dt.timedelta(hours=1)
     else:
         start = at(verz[0]) if verz else at(ts[0])
@@ -222,20 +224,30 @@ def main(argv=None) -> int:
         log.error("%d waarschuwing(en) en --strict: niets geschreven", len(warnings))
         return 1
 
-    # 1) versleutelde app
-    feed_rel = f"../agenda/{team['feed_token']}.ics"
-    html = Path(args.template).read_text(encoding="utf-8")
-    vault = json.dumps(encrypt(data, password))
-    cfg_js = json.dumps({"feed": feed_rel, "team": team["name"]}).replace("<", "\\u003c")
-    html = html.replace("__VAULT__", vault).replace("__CFG__", cfg_js)
+    # 0) ongewijzigd? Vingerafdruk (HMAC met de wachtzin, zonder het tijdstip) vergelijken
     out_html = Path(args.outdir) / args.team / "index.html"
-    out_html.parent.mkdir(parents=True, exist_ok=True)
-    out_html.write_text(html, encoding="utf-8")
-
-    # 2) teamagenda zonder namen
     out_ics = Path(args.outdir) / "agenda" / f"{team['feed_token']}.ics"
-    out_ics.parent.mkdir(parents=True, exist_ok=True)
-    out_ics.write_text(build_ics(data, team["name"]), encoding="utf-8")
+    stable = {k: v for k, v in data.items() if k != "updated"}
+    digest = hmac.new(norm_pw(password), json.dumps(stable, sort_keys=True, ensure_ascii=False).encode("utf-8"),
+                      hashlib.sha256).hexdigest()[:32]
+    unchanged = out_html.exists() and out_ics.exists() and f'content="{digest}"' in out_html.read_text(encoding="utf-8")
+    if unchanged:
+        log.info("Gegevens ongewijzigd: %s niet opnieuw geschreven", out_html.relative_to(ROOT))
+
+    # 1) versleutelde app
+    if not unchanged:
+        feed_rel = f"../agenda/{team['feed_token']}.ics"
+        html = Path(args.template).read_text(encoding="utf-8")
+        vault = json.dumps(encrypt(data, password))
+        cfg_js = json.dumps({"feed": feed_rel, "team": team["name"]}).replace("<", "\\u003c")
+        html = html.replace("__VAULT__", vault).replace("__CFG__", cfg_js)
+        html = html.replace('<meta name="robots"', f'<meta name="build" content="{digest}">\n<meta name="robots"', 1)
+        out_html.parent.mkdir(parents=True, exist_ok=True)
+        out_html.write_text(html, encoding="utf-8")
+
+        # 2) teamagenda zonder namen
+        out_ics.parent.mkdir(parents=True, exist_ok=True)
+        out_ics.write_text(build_ics(data, team["name"]), encoding="utf-8")
 
     # 3) controle: er mag geen enkele naam leesbaar in de uitvoer staan
     leaked = [k for k in data.get("kids", []) for p in (out_html, out_ics)
@@ -244,6 +256,15 @@ def main(argv=None) -> int:
         log.error("Namen leesbaar in de uitvoer: %s — bestanden verwijderd", sorted(set(leaked)))
         out_html.unlink(); out_ics.unlink()
         return 1
+
+    # 4) invoerscherm voor trainers en teammanagers, met het adres van de back-end
+    beheer_tpl = ROOT / "template" / "beheer.html"
+    if beheer_tpl.exists():
+        url = os.environ.get("SHEET_API_URL") or cfg.get("backend_url", "")
+        out_beheer = Path(args.outdir) / "beheer" / "index.html"
+        out_beheer.parent.mkdir(parents=True, exist_ok=True)
+        out_beheer.write_text(beheer_tpl.read_text(encoding="utf-8").replace("__API_URL__", url), encoding="utf-8")
+        log.info("Geschreven: %s (%s)", out_beheer.relative_to(ROOT), "gekoppeld" if url.startswith("https://") else "demomodus")
 
     log.info("Geschreven: %s (%d activiteiten, versleuteld)", out_html.relative_to(ROOT), len(data["events"]))
     log.info("Geschreven: %s (teamagenda, zonder namen)", out_ics.relative_to(ROOT))

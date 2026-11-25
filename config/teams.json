@@ -5,7 +5,9 @@
       "id": "jo11-1",
       "name": "DMHC Shinty JO11-1",
       "data": "data/jo11-1.json",
-      "feed_token": "_9x9S-7CRnZaKRq0tj7zWFhF"
+      "feed_token": "_9x9S-7CRnZaKRq0tj7zWFhF",
+      "sheet_team": "JO11-1"
     }
-  ]
+  ],
+  "backend_url": ""
 }
